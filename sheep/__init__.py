@@ -23,12 +23,12 @@ def main():
         ('serve', 'dev_appserver', "Run develop server"),
         ('install', 'install', "Install dependencies"),
         ('uninstall', 'uninstall', "Uninstall dependencies"),
-        ('deploy', 'deploy', "Deploy application"),
-        ('syncdb', 'syncdb', "Sync database"),
+        #('deploy', 'deploy', "Deploy application"),
+        #('syncdb', 'syncdb', "Sync database"),
         ('sync', 'sync', "Sync workspace"),
-        ('log', 'log', "Get log from server"),
-        ('dbshell', 'dbshell', "Open shell to control database"),
-        ('shell', 'shell', "Open shell for debug online"),
+        #('log', 'log', "Get log from server"),
+        #('dbshell', 'dbshell', "Open shell to control database"),
+        #('shell', 'shell', "Open shell for debug online"),
     ]
     for command, module_name, help_text in subcommands:
         if command in ('install', 'uninstall'):
