@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# encoding: UTF-8
+
 """Monkey patches for various module."""
 
 from .util import load_dev_config

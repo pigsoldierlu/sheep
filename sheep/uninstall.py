@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# encoding: UTF-8
+
 import os
 from subprocess import call
 

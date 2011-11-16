@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # encoding: UTF-8
 
 """Script to automatically install Sheep SDK."""

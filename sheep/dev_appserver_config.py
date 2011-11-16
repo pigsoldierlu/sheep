@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# encoding: UTF-8
+
 """ Gunicorn configs and hooks for auto-reloading and request timing
 """
 

@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# encoding: UTF-8
+
 from setuptools import setup, find_packages
 import sys, os
 

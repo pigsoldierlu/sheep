@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# encoding: UTF-8
+
 from subprocess import call
 
 def populate_argument_parser(parser):

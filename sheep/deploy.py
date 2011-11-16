@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# encoding: UTF-8
+
 import sys, os
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import defaultdict
