@@ -29,9 +29,9 @@ def main():
         #('deploy', 'deploy', "Deploy application"),
         #('syncdb', 'syncdb', "Sync database"),
         ('sync', 'sync', "Sync workspace"),
-        #('log', 'log', "Get log from server"),
+        ('log', 'log', "Get log from server"),
         #('dbshell', 'dbshell', "Open shell to control database"),
-        #('shell', 'shell', "Open shell for debug online"),
+        ('shell', 'shell', "Open shell for debug online"),
     ]
     for command, module_name, help_text in subcommands:
         if command in ('install', 'uninstall'):

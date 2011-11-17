@@ -16,7 +16,8 @@ def main(args):
     appcfg = load_app_config(root_path)
     appname = appcfg['application']
     try:
-        ws = create_connection("ws://%s.dapps.douban.com:7302/_dae/log/" % appname)
+        #ws = create_connection("ws://lab.cmgs.me/_sheep/log/" % appname)
+        ws = create_connection("ws://lab.cmgs.me:5000/_sheep/log/")
     except:
         print 'Can\'t connect remote.'
         return
@@ -31,9 +32,9 @@ def main(args):
                 line += '\n'
                 if line.startswith('==>'):
                     sys.stdout.write(line)
-                    if line.find('dae_accesslog') != -1:
+                    if line.find('sheep_accesslog') != -1:
                         log_type = 'ACCESSLOG'
-                    if line.find('dae_applog') != -1:
+                    if line.find('sheep_applog') != -1:
                         log_type = 'APPLOG'
                     continue
                 if line.startswith('tail') or line == '\r\n' or line == '\n':
