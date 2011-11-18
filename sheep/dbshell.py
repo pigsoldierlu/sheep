@@ -25,8 +25,7 @@ def main(args):
     appcfg = load_app_config(root_path)
     appname = appcfg['application']
     try:
-        #ws = create_connection("ws://%s.dapps.douban.com:7302/_dae/mysql/" % appname)
-        ws = create_connection("ws://lab.cmgs.me:5000/_sheep/mysql/")
+        ws = create_connection("ws://%s.xiaom.co:5000/_sheep/mysql/" % appname)
         read_thread = Thread(target=read_output, args=(ws, ))
         read_thread.start()
     except:

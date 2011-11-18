@@ -16,8 +16,7 @@ def main(args):
     appcfg = load_app_config(root_path)
     appname = appcfg['application']
     try:
-        #ws = create_connection("ws://lab.cmgs.me/_sheep/log/" % appname)
-        ws = create_connection("ws://lab.cmgs.me:5000/_sheep/log/")
+        ws = create_connection("ws://%s.xiaom.co:5000/_sheep/log/" % appname)
     except:
         print 'Can\'t connect remote.'
         return

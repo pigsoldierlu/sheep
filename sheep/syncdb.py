@@ -10,7 +10,7 @@ import MySQLdb
 
 from .util import find_app_root, load_dev_config, load_app_config
 
-DEFAULT_SERVER = 'http://dae_deploy.dapps.douban.com'
+DEFAULT_SERVER = 'http://deploy.xiaom.co'
 
 logger = logging.getLogger(__name__)
 

@@ -25,8 +25,7 @@ def main(args):
     appcfg = load_app_config(root_path)
     appname = appcfg['application']
     try:
-        #ws = create_connection("ws://lab.cmgs.me:5000/_sheep/shell/" % appname)
-        ws = create_connection("ws://lab.cmgs.me:5000/_sheep/shell/")
+        ws = create_connection("ws://%s.xiaom.co:5000/_sheep/shell/" % appname)
         read_thread = Thread(target=read_output, args=(ws, ))
         read_thread.start()
     except:
