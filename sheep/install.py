@@ -34,7 +34,7 @@ def main(args, argv):
         return "Your app environment needs to upgrade.  Run 'sheep sync' please."
 
     call(['mkdir', '-p', os.path.join(approot, 'pip-download')])
-    retval = call([pip_path] + argv + ['--download-cache',
+    retval = call([pip_path] + argv + ['--download-save',
                                        os.path.join(approot, 'pip-download')])
     dump_requirements(approot)
     if os.path.exists(os.path.join(approot, '.svn')):

@@ -39,11 +39,11 @@ def main(args):
         check_call(['virtualenv', '--no-site-packages', venvdir,
                     '--prompt', '(%s)' % appname])
 
-    #if not os.path.exists(os.path.join(venvdir, 'src', 'pip')) \
-    #   or not is_pip_compatible(os.path.join(venvdir, 'bin', 'pip')):
-    #    logger.info('Installing patched pip...')
-    #    check_call([os.path.join(venvdir, 'bin', 'pip'), 'install', '-e',
-    #                'hg+http://shire:hobbits@hg.douban.com/pip#egg=pip'])
+    if not os.path.exists(os.path.join(venvdir, 'src', 'pip')) \
+       or not is_pip_compatible(os.path.join(venvdir, 'bin', 'pip')):
+        logger.info('Installing patched pip...')
+        check_call([os.path.join(venvdir, 'bin', 'pip'), 'install', '-e',
+                    'hg+https://bitbucket.org/CMGS/sheep-pip/pip#egg=pip'])
 
     if os.path.exists(os.path.join(approot, 'pip-req.txt')):
         logger.info('Installing requirements...')
