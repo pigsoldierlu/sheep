@@ -43,7 +43,7 @@ def main(args):
        or not is_pip_compatible(os.path.join(venvdir, 'bin', 'pip')):
         logger.info('Installing patched pip...')
         check_call([os.path.join(venvdir, 'bin', 'pip'), 'install', '-e',
-                    'hg+https://bitbucket.org/CMGS/sheep-pip/pip#egg=pip'])
+                    'hg+https://bitbucket.org/CMGS/pip#egg=pip'])
 
     if os.path.exists(os.path.join(approot, 'pip-req.txt')):
         logger.info('Installing requirements...')

@@ -33,16 +33,16 @@ def main(args, argv):
     if not is_pip_compatible(pip_path):
         return "Your app environment needs to upgrade.  Run 'sheep sync' please."
 
-    call(['mkdir', '-p', os.path.join(approot, 'pip-download')])
-    retval = call([pip_path] + argv + ['--download-save',
-                                       os.path.join(approot, 'pip-download')])
+    pip_download_dir = os.path.join(approot, 'pip-download')
+    call(['mkdir', '-p', pip_download_dir])
+    retval = call([pip_path] + argv + ['--save-download', pip_download_dir])
     dump_requirements(approot)
     if os.path.exists(os.path.join(approot, '.svn')):
-        call(['svn', 'add', '-q', os.path.join(approot, 'pip-download')] + \
-             glob(os.path.join(approot, 'pip-download', '*')))
+        call(['svn', 'add', '-q', pip_download_dir] + \
+             glob(os.path.join(pip_download_dir, '*')))
     elif os.path.exists(os.path.join(approot, '.hg')):
-        call(['hg', 'add', os.path.join(approot, 'pip-download')] + \
-             glob(os.path.join(approot, 'pip-download', '*')))
+        call(['hg', 'add', pip_download_dir] + \
+             glob(os.path.join(pip_download_dir, '*')))
     return retval
 
 

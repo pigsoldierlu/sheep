@@ -191,6 +191,6 @@ def load_dev_config(root_path):
     return devcfg
 
 def is_pip_compatible(pip_path):
-    """Check if `pip --download-save` is supported"""
+    """Check if `pip --save-download` is supported"""
     stdout, stderr = Popen([pip_path, 'install', '--help'], stdout=PIPE).communicate()
-    return '--download-save' in stdout
+    return '--save-download' in stdout

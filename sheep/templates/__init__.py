@@ -69,7 +69,7 @@ class SHEEPTemplate(MyTemplate):
         if command.verbose:
             print "Installing patched pip"
         check_call([os.path.join(venvdir, 'bin', 'pip'), 'install', '-q',
-                    '-e', 'hg+https://bitbucket.org/CMGS/sheep-pip/pip#egg=pip'])
+                    '-e', 'hg+https://bitbucket.org/CMGS/pip#egg=pip'])
 
         if command.verbose:
             print "Setting svn:ignore"
