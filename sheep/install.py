@@ -33,7 +33,7 @@ def main(args, argv):
     if not is_pip_compatible(pip_path):
         return "Your app environment needs to upgrade.  Run 'sheep sync' please."
 
-    retval = call([pip_path] + argv + ['--save-download',
+    retval = call([pip_path] + argv + ['--download',
                                        os.path.join(approot, 'pip-download')])
     dump_requirements(approot)
     call(['svn', 'add', '-q', os.path.join(approot, 'pip-download')] + \
