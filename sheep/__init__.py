@@ -26,7 +26,7 @@ def main():
         ('serve', 'dev_appserver', "Run develop server"),
         ('install', 'install', "Install dependencies"),
         ('uninstall', 'uninstall', "Uninstall dependencies"),
-        #('deploy', 'deploy', "Deploy application"),
+        ('deploy', 'deploy', "Deploy application"),
         ('syncdb', 'syncdb', "Sync database"),
         ('sync', 'sync', "Sync workspace"),
         ('log', 'log', "Get log from server"),

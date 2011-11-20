@@ -39,9 +39,6 @@ def populate_argument_parser(parser):
     parser.add_argument('--dump-mysql', type=str, default='db_dumps.sql',
                         help="Path and filename to store mysql dumping file"
                              "[default: named db_dumps.sql store in current dir]")
-    parser.add_argument('--deploy-server', default=None,
-                        help="Choose deploy server [default: random] "
-                            "(debug purpose only)")
 
 def main(args):
     try:
@@ -76,12 +73,11 @@ def _main(args):
             'app_url': vcs_url}
     if logger.getEffectiveLevel() < logging.INFO:
         data['verbose'] = '1'
+    deploy_to_server(data, args.server)
 
+def deploy_to_server(data, server):
     opener = FancyURLopener()
-    if args.deploy_server:
-        opener.addheader('Cookie',
-                         '_sheep_app_server=%s' % args.deploy_server)
-    f = opener.open(args.server, urlencode(data))
+    f = opener.open(server, urlencode(data))
     line = ''  # to avoid NameError for line if f has no output at all.
     for line in iter(f.readline, ''):
         try:
@@ -93,7 +89,7 @@ def _main(args):
 
     if not any(word in line for word in ['succeeded', 'failed']):
         logger.warning("It seems that the deploy failed.  Try again later.  "
-                       "If the failure persists, contact Sheep admin please.")
+                       "If the failure persists, contact Sheep admin please.")    
 
 def push_modifications(root_path):
     if os.path.exists(os.path.join(root_path, '.hg')):
