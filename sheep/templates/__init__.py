@@ -93,4 +93,4 @@ class SHEEPTemplate(MyTemplate):
 
         if command.verbose:
             print "Application %s created in %s." % (vars['appname'], output_dir)
-            print "RTFM http://goo.gl/jODG2 and happy hacking!"
+            print "Happy hacking!"
