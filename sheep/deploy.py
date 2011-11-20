@@ -30,9 +30,9 @@ class OutgoingChangesExists(Exception):
         self.workdir = workdir
 
 def populate_argument_parser(parser):
-    parser.add_argument('-s', '--server', default='http://dae_deploy.dapps.douban.com',
+    parser.add_argument('-s', '--server', default='http://deploy.xiaom.co',
                         help="The AppEngine deploy server "
-                             "[default: http://dae_deploy.dapps.douban.com]")
+                             "[default: http://deploy.xiaom.co]")
     parser.add_argument('root_path', metavar='<app root>', nargs='?',
                       help="directory contains app.yaml "
                            "[default: find automatically in parent dirs]")
@@ -40,7 +40,7 @@ def populate_argument_parser(parser):
                         help="Path and filename to store mysql dumping file"
                              "[default: named db_dumps.sql store in current dir]")
     parser.add_argument('--deploy-server', default=None,
-                        help="Choose dae_deploy server [default: random] "
+                        help="Choose deploy server [default: random] "
                             "(debug purpose only)")
 
 def main(args):
@@ -80,7 +80,7 @@ def _main(args):
     opener = FancyURLopener()
     if args.deploy_server:
         opener.addheader('Cookie',
-                         '_dae_app_server=%s' % args.deploy_server)
+                         '_sheep_app_server=%s' % args.deploy_server)
     f = opener.open(args.server, urlencode(data))
     line = ''  # to avoid NameError for line if f has no output at all.
     for line in iter(f.readline, ''):
@@ -93,58 +93,7 @@ def _main(args):
 
     if not any(word in line for word in ['succeeded', 'failed']):
         logger.warning("It seems that the deploy failed.  Try again later.  "
-                       "If the failure persists, contact DAE admin please.")
-
-def check_dependency_modifications():
-    virtualenv = sys.prefix
-    src_path = os.path.join(virtualenv, 'src')
-    for dirname in os.listdir(src_path):
-        dirpath = os.path.join(src_path, dirname)
-        if not os.path.isdir(dirpath):
-            continue
-        logger.info("Checking %s", dirpath)
-        vcs = get_vcs(dirpath)
-        if vcs == 'hg':
-            check_hg_modifications(dirpath)
-        elif vcs == 'svn':
-            check_svn_modifications(dirpath)
-        elif vcs == 'git':
-            check_git_modifications(dirpath)
-
-
-def check_hg_modifications(dirpath):
-    modified = Popen(['hg', '-R', dirpath, 'status', '-mard'],
-                     stdout=PIPE).communicate()[0].strip()
-    if modified:
-        raise LocalModificationExists(dirpath)
-    cmd = ['hg', '-R', dirpath, 'outgoing']
-    retcode, output = call(cmd, record_output=True)
-    if retcode == 0:
-        raise OutgoingChangesExists(dirpath)
-    elif retcode != 1:
-        raise CalledProcessError(retcode, cmd, output=output)
-
-def check_git_modifications(dirpath):
-    cwd = os.getcwd()
-    try:
-        os.chdir(dirpath)
-        modified = Popen(['git', 'status', '--short'],
-                         stdout=PIPE).communicate()[0].strip()
-        if modified:
-            raise LocalModificationExists(dirpath)
-        has_outgoing = Popen(['git', 'log', 'origin/master..HEAD'],
-                             stdout=PIPE).communicate()[0].strip()
-        if has_outgoing:
-            raise OutgoingChangesExists(dirpath)
-
-    finally:
-        os.chdir(cwd)
-
-def check_svn_modifications(dirpath):
-    modified = Popen(['svn', 'status', dirpath],
-                     stdout=PIPE).communicate()[0].strip()
-    if modified:
-        raise LocalModificationExists(dirpath)
+                       "If the failure persists, contact Sheep admin please.")
 
 def push_modifications(root_path):
     if os.path.exists(os.path.join(root_path, '.hg')):
@@ -172,7 +121,7 @@ def push_hg_modifications(root_path):
 
     elif hg_status.values() == [['pip-req.txt']]:
         check_call(['hg', '-R', root_path, 'commit',
-                    '-m', "update pip-req.txt by dae deploy"])
+                    '-m', "update pip-req.txt by deploy"])
 
     check_call(['hg', '-R', root_path, 'push'])
 
@@ -198,6 +147,6 @@ def push_svn_modifications(root_path):
 
     elif svn_status.values() == [[pip_req_path]]:
         check_call(['svn', 'commit', root_path,
-                    '-m', "update pip-req.txt by dae deploy"])
+                    '-m', "update pip-req.txt by deploy"])
 
 
