@@ -139,7 +139,11 @@ def push_svn_modifications(root_path):
         if answer != 'y':
             sys.exit(1)
         else:
-            check_call(['svn', 'commit', root_path], need_input=True)
+            try:
+                check_call(['svn', 'commit', root_path], need_input=True)
+            except:
+                logger.info('You need set svn commit editor first.')
+                sys.exit(1)
 
     elif svn_status.values() == [[pip_req_path]]:
         check_call(['svn', 'commit', root_path,

@@ -53,7 +53,6 @@ class SHEEPApplication(Application):
 
 def handler_factory(config):
     mapping = [('wsgi_app', WSGIAppHandler),
-               ('static_dir', StaticDirHandler),
                ('static_files', StaticFilesHandler),
                ('paster', PasterHandler),
               ]
@@ -95,7 +94,7 @@ class PrefixMatchMixIn(object):
         regex = config['url']
         if regex.startswith('^') or regex.endswith('$') or '(' in regex:
             raise InvalidAppConfigError('regex starts with "^" or ends with "$" or "(" in it')
-        return regex + '(.*)'
+        return regex + '.*'
 
 class WSGIAppHandler(BaseHandler, WholeMatchMixIn):
     def make_app(self, config):
@@ -115,27 +114,10 @@ class PasterHandler(WSGIAppHandler):
 
         return loadapp('config:' + ini, relative_to=os.getcwd())
 
-class StaticDirHandler(BaseHandler, PrefixMatchMixIn):
-    def make_app(self, config):
-        return StaticDirApplication(config['static_dir'])
-
 
 class StaticFilesHandler(BaseHandler, WholeMatchMixIn):
     def make_app(self, config):
         return StaticFilesApplication(config['static_files'])
-
-
-class StaticDirApplication(object):
-    """Serve static dir"""
-
-    def __init__(self, directory):
-        self.directory = directory
-
-    def __call__(self, environ, start_response):
-        m = environ['sheep.matched']
-        path = m.group(1).lstrip('/')
-        path = os.path.join(self.directory, path)
-        return StaticFileApplication(path)(environ, start_response)
 
 
 class StaticFilesApplication(object):
@@ -152,32 +134,35 @@ class StaticFileApplication(object):
     def __init__(self, path):
         self.path = path
 
-    def _get_etag(self, file):
-        def _base62encode(n):
-            ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            arr = []
-            n = int(n)
-            while n:
-                r = n % 62
-                n = n // 62
-                arr.append(ALPHABET[r])
-            arr.reverse()
-            return ''.join(arr)
+    def _get_last_modified(self, path):
+        return os.stat(path).st_mtime
 
-        mtime = os.stat(file).st_mtime
-        return _base62encode(mtime)
+    def _generate_last_modified_string(self, path):
+        mtime = self._get_last_modified(path)
+        return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(mtime))
+
+    def _if_modified_since(self, path, timestr):
+        try:
+            t = time.mktime(time.strptime(timestr, "%a, %d %b %Y %H:%M:%S GMT"))
+        except ValueError:
+            return True
+        else:
+            t -= time.timezone  # convert gmt to local time
+            mtime = self._get_last_modified(path)
+            return mtime > t
 
     def __call__(self, environ, start_response):
         path = self.path
         if os.path.isfile(path):
             mimetype = mimetypes.guess_type(path)[0] or 'text/plain'
-            etag = '"%s"' % self._get_etag(path)
+            last_modified = self._generate_last_modified_string(path)
             headers = [
                 ('Content-type', mimetype),
-                ('ETag', etag),
+                ('Last-Modified', last_modified),
             ]
 
-            if environ.get('HTTP_IF_NONE_MATCH') == etag:
+            ims = environ.get('HTTP_IF_MODIFIED_SINCE')
+            if ims and not self._if_modified_since(path, ims):
                 start_response('304 Not Modified', headers)
                 return ''
 
