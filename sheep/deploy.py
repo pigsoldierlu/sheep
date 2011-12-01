@@ -54,7 +54,10 @@ def _main(args):
     root_path = args.root_path or find_app_root()
     appcfg = load_app_config(root_path)
     activate_virtualenv(root_path)
-    sync_database(root_path, args.dump_mysql, args.server)
+    ret = sync_database(root_path, args.dump_mysql, args.server)
+    if 'succeeded' not in ret:
+        logger.info("Syncdb failed, deploy exit ...")
+        sys.exit(1)
 
     logger.info("Generating dependencies...")
     dump_requirements(root_path)
@@ -119,7 +122,7 @@ def push_hg_modifications(root_path):
         check_call(['hg', '-R', root_path, 'commit',
                     '-m', "update pip-req.txt by deploy"])
 
-    check_call(['hg', '-R', root_path, 'push'])
+    check_call(['hg', '-R', root_path, 'push'], need_input=True)
 
 def push_svn_modifications(root_path):
     call(['svn', 'update', root_path], log=logger.debug)

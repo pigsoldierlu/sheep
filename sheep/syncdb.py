@@ -31,14 +31,14 @@ def populate_argument_parser(parser):
                              "[default: named db_dumps.sql store in current dir]")
 def main(args):
     root_path = args.root_path or find_app_root()
-    sync_database(root_path, args.dump_mysql, server=args.server, sync_data=args.data, reset=args.reset)
+    return sync_database(root_path, args.dump_mysql, server=args.server, sync_data=args.data, reset=args.reset)
 
 def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False, reset=False):
     appcfg = load_app_config(root_path)
     devcfg = load_dev_config(root_path)
     if 'mysql' not in devcfg:
         logger.info("No MySQL configuration found in dev.yaml.")
-        return
+        return 'Syncdb succeeded.'
 
     logger.info("Syncing database to servers...")
     with open(dump_mysql, 'w') as dumpfile:
@@ -48,8 +48,11 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False,
             appname = appcfg['application']
             result = verify(appname, struct, data, reset, server)
             logger.info(result)
+        except:
+            return
         finally:
             conn.close()
+    return result
 
 def verify(appname, dumps, data, reset, server):
     logger.debug(dumps)
