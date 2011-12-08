@@ -5,8 +5,8 @@ import os
 import logging
 from subprocess import check_call
 
-from .util import find_app_root, load_app_config, get_vcs, is_pip_compatible
 from .consts import VENV_DIR_KEY, DEFAULT_VENV_DIR
+from .util import find_app_root, load_app_config, get_vcs, is_pip_compatible, patch_sys_path
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,10 @@ def main(args):
         logger.info('Creating virtualenv at %s...', venvdir)
         check_call(['virtualenv', '--no-site-packages', venvdir,
                     '--prompt', '(%s)' % appname])
+        getdir = lambda a, b: b(b(b(a)))
+        this_path = os.path.realpath(__file__)
+        sdkdir = getdir(this_path, os.path.dirname)
+        patch_sys_path(sdkdir, venvdir)
 
     if not os.path.exists(os.path.join(venvdir, 'src', 'pip')) \
        or not is_pip_compatible(os.path.join(venvdir, 'bin', 'pip')):

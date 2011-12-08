@@ -9,8 +9,8 @@ from subprocess import check_call, call
 from paste.script.templates import Template, var, NoDefault
 from mako.template import Template as MakoTemplate
 
-from ..util import validate_appname
 from ..consts import DEFAULT_VENV_DIR
+from ..util import validate_appname, patch_sys_path
 
 def render_mako(content, vars, filename=None):
     return MakoTemplate(text=content, filename=filename).render(**vars)
@@ -60,28 +60,16 @@ class SHEEPTemplate(MyTemplate):
 
     def post(self, command, output_dir, vars):
         venvdir = os.path.join(output_dir, DEFAULT_VENV_DIR)
-        this_path = os.path.realpath(__file__)
-        getdir = lambda a, b: b(b(b(b(a))))
-        virtualenv_path = os.path.join(getdir(this_path, os.path.dirname), 'bin', 'virtualenv')
+
         if command.verbose:
             print "Creating virtual environment at %s" % venvdir
-        check_call([virtualenv_path, venvdir, 
+        check_call(['virtualenv', '--no-site-packages', venvdir,
                     '--prompt', "(%s)" % vars['appname']])
 
-        #patch
-        py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
-        site_packages_path = os.path.join(getdir(this_path, os.path.dirname), 'lib', \
-                                          py_version, 'site-packages')
-
-        venv_site_packages_path = os.path.join(venvdir, 'lib', py_version, 'site-packages')
-        packages = [package for package in open(os.path.join(site_packages_path, 'easy-install.pth')).readlines()[2:-1]]
-
-        with open(os.path.join(venv_site_packages_path, 'easy-install.pth'), 'r') as f:
-            org_easy_install = f.readlines()
-            org_easy_install.extend(packages)
-            org_easy_install.append(site_packages_path+'\n')
-            with open(os.path.join(venv_site_packages_path, 'easy-install.pth'), 'w') as w:
-                w.writelines(org_easy_install)
+        getdir = lambda a, b: b(b(b(b(a))))
+        this_path = os.path.realpath(__file__)
+        sdkdir = getdir(this_path, os.path.dirname)
+        patch_sys_path(sdkdir, venvdir)
 
         if command.verbose:
             print "Installing patched pip"
