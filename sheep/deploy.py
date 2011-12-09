@@ -79,7 +79,15 @@ def _main(args):
             'app_url': vcs_url}
     if logger.getEffectiveLevel() < logging.INFO:
         data['verbose'] = '1'
+    deploy_to_server(data, server[0])
+    if result[server[0]] == 'Failed':
+        logger.warning("It seems that the deploy failed.  Try again later.  "
+                       "If the failure persists, contact DAE admin please.")
+        sys.exit(1)
+
+    servers.pop(0)
     for server in servers:
+        sync_database(root_path, args.dump_mysql, server)
         deploy_to_server(data, server)
     logger.info('==========RESULT==========')
     for k, v in result.iteritems():
