@@ -40,7 +40,10 @@ def main(args):
                     sys.stdout.write(line)
                     continue
                 if log_type == 'APPLOG':
-                    sys.stdout.write(' '.join(line.split(' ', 2)[2:]))
+                    if line.startswith('ShEeP'):
+                        sys.stdout.write(' '.join(line.split(' ', 2)[2:]))
+                    else:
+                        sys.stdout.write(line)
                 elif log_type == 'ACCESSLOG':
                     line = line.split(' ', 5)
                     sys.stdout.write(' '.join(line))
