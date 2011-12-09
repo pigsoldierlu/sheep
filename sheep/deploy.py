@@ -14,10 +14,6 @@ from .util import load_app_config, find_app_root, activate_virtualenv, \
 logger = logging.getLogger(__name__)
 result = {}
 
-GREEN = '\x1b[01;32m'
-RED = '\x1b[0;31m'
-NORMAL = '\x1b[0m'
-
 def check_call(*args, **kwargs):
     kwargs.setdefault('log', logger.debug)
     return log_check_call(*args, **kwargs)
@@ -87,13 +83,7 @@ def _main(args):
         deploy_to_server(data, server)
     logger.info('==========RESULT==========')
     for k, v in result.iteritems():
-        if v == 'Succeeded':
-            sys.stdout.write(GREEN)
-            logger.info('%s %s' % (k, v))
-        else:
-            sys.stdout.write(RED)
-            logger.info('%s %s' % (k, v))
-    sys.stdout.write(NORMAL)
+        logger.info('%s %s' % (k, v))
 
 
 def deploy_to_server(data, server):
