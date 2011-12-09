@@ -110,10 +110,9 @@ def deploy_to_server(data, server):
         logger.log(loglevel, "%s", line.rstrip())
 
     if not any(word in line for word in ['succeeded', 'failed']):
-        result[server] = "It seems that the deploy failed.  Try again later. "
-                         "If the failure persists, contact Sheep admin please."
-        return
-    result[server] = "Succeeded"
+        result[server] = "Failed"
+    else:
+        result[server] = "Succeeded"
 
 def push_modifications(root_path):
     if os.path.exists(os.path.join(root_path, '.hg')):
