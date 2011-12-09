@@ -12,6 +12,11 @@ from .util import load_app_config, find_app_root, activate_virtualenv, \
         log_check_call, log_call, dump_requirements, get_vcs_url, get_vcs
 
 logger = logging.getLogger(__name__)
+result = {}
+
+GREEN = '\x1b[01;32m'
+RED = '\x1b[0;31m'
+NORMAL = '\x1b[0m'
 
 def check_call(*args, **kwargs):
     kwargs.setdefault('log', logger.debug)
@@ -30,8 +35,9 @@ class OutgoingChangesExists(Exception):
         self.workdir = workdir
 
 def populate_argument_parser(parser):
-    parser.add_argument('-s', '--server', default='http://deploy.xiaom.co',
+    parser.add_argument('-s', '--servers', default='http://deploy.xiaom.co',
                         help="The AppEngine deploy server "
+                             "Split by comma"
                              "[default: http://deploy.xiaom.co]")
     parser.add_argument('root_path', metavar='<app root>', nargs='?',
                       help="directory contains app.yaml "
@@ -54,7 +60,8 @@ def _main(args):
     root_path = args.root_path or find_app_root()
     appcfg = load_app_config(root_path)
     activate_virtualenv(root_path)
-    ret = sync_database(root_path, args.dump_mysql, args.server)
+    servers = args.servers.split(',')
+    ret = sync_database(root_path, args.dump_mysql, servers[0])
     if 'succeeded' not in ret:
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)
@@ -76,9 +83,21 @@ def _main(args):
             'app_url': vcs_url}
     if logger.getEffectiveLevel() < logging.INFO:
         data['verbose'] = '1'
-    deploy_to_server(data, args.server)
+    for server in servers:
+        deploy_to_server(data, server)
+    logger.info('==========RESULT==========')
+    for k, v in result.iteritems():
+        if v == 'Succeeded':
+            sys.stdout.write(GREEN)
+            logger.info('%s %s' % (k, v))
+        else:
+            sys.stdout.write(RED)
+            logger.info('%s %s' % (k, v))
+    sys.stdout.write(NORMAL)
+
 
 def deploy_to_server(data, server):
+    global result
     opener = FancyURLopener()
     f = opener.open(server, urlencode(data))
     line = ''  # to avoid NameError for line if f has no output at all.
@@ -91,8 +110,10 @@ def deploy_to_server(data, server):
         logger.log(loglevel, "%s", line.rstrip())
 
     if not any(word in line for word in ['succeeded', 'failed']):
-        logger.warning("It seems that the deploy failed.  Try again later.  "
-                       "If the failure persists, contact Sheep admin please.")    
+        result[server] = "It seems that the deploy failed.  Try again later. "
+                         "If the failure persists, contact Sheep admin please."
+        return
+    result[server] = "Succeeded"
 
 def push_modifications(root_path):
     if os.path.exists(os.path.join(root_path, '.hg')):
