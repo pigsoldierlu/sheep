@@ -79,8 +79,8 @@ def _main(args):
             'app_url': vcs_url}
     if logger.getEffectiveLevel() < logging.INFO:
         data['verbose'] = '1'
-    deploy_to_server(data, server[0])
-    if result[server[0]] == 'Failed':
+    deploy_to_server(data, servers[0])
+    if result[servers[0]] == 'Failed':
         logger.warning("It seems that the deploy failed.  Try again later.  "
                        "If the failure persists, contact DAE admin please.")
         sys.exit(1)
