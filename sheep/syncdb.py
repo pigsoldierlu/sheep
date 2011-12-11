@@ -48,7 +48,6 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False,
             struct, data = dumps(dumpfile, conn, sync_data)
             appname = appcfg['application']
             result = verify(appname, struct, data, reset, server, verbose)
-            logger.info(result)
         except:
             logger.exception('Error occured.')
             return
@@ -65,8 +64,6 @@ def verify(appname, dumps, data, reset, server, verbose):
     line = ''
     for line in iter(f.readline, ''):
         logger.info(line)
-    #req = urllib2.Request()
-    #res = urllib2.urlopen(req)
     return line
 
 def dumps(dumpfile, conn, sync_data = False):
