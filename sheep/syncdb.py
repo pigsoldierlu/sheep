@@ -64,7 +64,8 @@ def verify(appname, dumps, data, reset, server, verbose):
     f = urllib2.urlopen(req)
     line = ''
     for line in iter(f.readline, ''):
-        logger.info(line)
+        line = line.strip()
+        logger.debug(line)
     return line
 
 def dumps(dumpfile, conn, sync_data = False):
