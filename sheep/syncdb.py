@@ -3,9 +3,9 @@
 
 import os
 import json
+import urllib2
 import MySQLdb
 import logging
-from urllib import FancyURLopener
 
 from .util import find_app_root, load_dev_config, load_app_config
 
@@ -30,10 +30,11 @@ def populate_argument_parser(parser):
                              "[default: named db_dumps.sql store in current dir]")
 def main(args):
     root_path = args.root_path or find_app_root()
+    verbose = logger.getEffectiveLevel() < logging.INFO
     sync_database(root_path, args.dump_mysql, server=args.server, \
-                         sync_data=args.data, reset=args.reset)
+                         sync_data=args.data, reset=args.reset, verbose=verbose)
 
-def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False, reset=False):
+def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False, reset=False, verbose=False):
     appcfg = load_app_config(root_path)
     devcfg = load_dev_config(root_path)
     if 'mysql' not in devcfg:
@@ -46,7 +47,7 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False,
         try:
             struct, data = dumps(dumpfile, conn, sync_data)
             appname = appcfg['application']
-            result = verify(appname, struct, data, reset, server)
+            result = verify(appname, struct, data, reset, server, verbose)
         except:
             logger.exception('Error occured.')
             return
@@ -54,12 +55,13 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False,
             conn.close()
     return result
 
-def verify(appname, dumps, data, reset, server):
+def verify(appname, dumps, data, reset, server, verbose):
     logger.debug(dumps)
-    post_data = json.dumps({'application':appname, 'reset':reset, 'local':dumps, 'data':data})
+    post_data = json.dumps({'application':appname, 'reset':reset, 'local':dumps, 'data':data, 'verbose': verbose})
     post_url = '%s/syncdb/' % server
-    opener = FancyURLopener()
-    f = opener.open(post_url, post_data)
+
+    req = urllib2.Request(post_url, post_data)
+    f = urllib2.urlopen(req)
     line = ''
     for line in iter(f.readline, ''):
         logger.info(line)
