@@ -5,7 +5,7 @@ import os
 import json
 import MySQLdb
 import logging
-from urllib import FancyURLopener, urlencode
+from urllib import FancyURLopener
 
 from .util import find_app_root, load_dev_config, load_app_config
 
@@ -59,7 +59,8 @@ def verify(appname, dumps, data, reset, server, verbose):
     logger.debug(dumps)
     post_data = json.dumps({'application':appname, 'reset':reset, 'local':dumps, 'data':data, 'verbose': verbose})
     post_url = '%s/syncdb/' % server
-    f = opener.open(post_url, urlencode(post_data))
+    opener = FancyURLopener()
+    f = opener.open(post_url, post_data)
     line = ''
     for line in iter(f.readline, ''):
         logger.info(line)
