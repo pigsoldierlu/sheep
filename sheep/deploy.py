@@ -80,7 +80,7 @@ def _main(args):
     logger.info(render_ok(','.join(servers)))
     servers = ['http://%s%s' % (prefix, args.suffix) for prefix in servers]
 
-    ret = sync_database(root_path, args.dump_mysql, servers[0], verbose=verbose)
+    ret = sync_database(root_path, args.dump_mysql, servers[0])
     if 'succeeded' not in ret:
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)
@@ -110,7 +110,7 @@ def _main(args):
         sys.exit(1)
 
     servers.pop(0)
-    setup_on_nodes(servers, root_path, args.dump_mysql, data, verbose)
+    setup_on_nodes(servers, root_path, args.dump_mysql, data)
 
     logger.info('==========RESULT==========')
     for k, v in result.iteritems():
@@ -127,9 +127,9 @@ def get_deploy_servers(server, appname):
     except:
         return []
 
-def setup_on_nodes(servers, root_path, dump_mysql, data, verbose):
+def setup_on_nodes(servers, root_path, dump_mysql, data):
     for server in servers:
-        ret = sync_database(root_path, dump_mysql, server, verbose=verbose)
+        ret = sync_database(root_path, dump_mysql, server)
         if 'succeeded' not in ret:
             logger.info("Syncdb failed, deploy exit ...")
             continue
