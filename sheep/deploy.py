@@ -69,6 +69,7 @@ def _main(args):
     appcfg = load_app_config(root_path)
     appname = appcfg['application']
     activate_virtualenv(root_path)
+    verbose = logger.getEffectiveLevel() < logging.INFO
 
     servers = get_deploy_servers(args.server, appname)
     if not servers:
@@ -79,7 +80,7 @@ def _main(args):
     for server in servers:
         logger.info(render_ok(server))
 
-    ret = sync_database(root_path, args.dump_mysql, servers[0])
+    ret = sync_database(root_path, args.dump_mysql, servers[0], verbose=verbose)
     if 'succeeded' not in ret:
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)
@@ -100,7 +101,7 @@ def _main(args):
     data = {'app_name': appname,
             'app_url': vcs_url}
 
-    if logger.getEffectiveLevel() < logging.INFO:
+    if verbose:
         data['verbose'] = '1'
     deploy_to_server(data, servers[0])
 
@@ -109,7 +110,7 @@ def _main(args):
         sys.exit(1)
 
     servers.pop(0)
-    setup_on_nodes(servers, root_path, args.dump_mysql)
+    setup_on_nodes(servers, root_path, args.dump_mysql, data, verbose)
 
     logger.info('==========RESULT==========')
     for k, v in result.iteritems():
@@ -126,9 +127,9 @@ def get_deploy_servers(server, appname):
     except:
         return []
 
-def setup_on_nodes(servers, root_path, dump_mysql):
+def setup_on_nodes(servers, root_path, dump_mysql, data, verbose):
     for server in servers:
-        ret = sync_database(root_path, dump_mysql, server)
+        ret = sync_database(root_path, dump_mysql, server, verbose=verbose)
         if 'succeeded' not in ret:
             logger.info("Syncdb failed, deploy exit ...")
             continue

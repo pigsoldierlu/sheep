@@ -31,9 +31,11 @@ def populate_argument_parser(parser):
                              "[default: named db_dumps.sql store in current dir]")
 def main(args):
     root_path = args.root_path or find_app_root()
-    return sync_database(root_path, args.dump_mysql, server=args.server, sync_data=args.data, reset=args.reset)
+    verbose = logger.getEffectiveLevel() < logging.INFO
+    return sync_database(root_path, args.dump_mysql, server=args.server, \
+                         sync_data=args.data, reset=args.reset, verbose=verbose)
 
-def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False, reset=False):
+def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False, reset=False, verbose=False):
     appcfg = load_app_config(root_path)
     devcfg = load_dev_config(root_path)
     if 'mysql' not in devcfg:
@@ -46,18 +48,18 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False,
         try:
             struct, data = dumps(dumpfile, conn, sync_data)
             appname = appcfg['application']
-            result = verify(appname, struct, data, reset, server)
+            result = verify(appname, struct, data, reset, server, verbose)
             logger.info(result)
-        except:
-            return
+        except Exception, e:
+            return str(e)
         finally:
             conn.close()
     return result
 
-def verify(appname, dumps, data, reset, server):
+def verify(appname, dumps, data, reset, server, verbose):
     logger.debug(dumps)
     req = urllib2.Request('%s/syncdb/' % server, 
-                            json.dumps({'application':appname, 'reset':reset, 'local':dumps, 'data':data})
+                            json.dumps({'application':appname, 'reset':reset, 'local':dumps, 'data':data, 'verbose': verbose})
                          )
     res = urllib2.urlopen(req)
     return res.read()
