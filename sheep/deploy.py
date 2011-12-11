@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
-import sys, os
+import os, sys, json
 from subprocess import Popen, PIPE, CalledProcessError
 from collections import defaultdict
 from urllib import FancyURLopener, urlencode
@@ -13,6 +13,9 @@ from .util import load_app_config, find_app_root, activate_virtualenv, \
 
 logger = logging.getLogger(__name__)
 result = {}
+
+RED = '\x1b[01;31m'
+GREEN = '\x1b[01;32m'
 
 def check_call(*args, **kwargs):
     kwargs.setdefault('log', logger.debug)
@@ -31,10 +34,12 @@ class OutgoingChangesExists(Exception):
         self.workdir = workdir
 
 def populate_argument_parser(parser):
-    parser.add_argument('-s', '--servers', default='http://deploy.xiaom.co',
-                        help="The AppEngine deploy server "
-                             "Split by comma"
+    parser.add_argument('-s', '--server', default='http://deploy.xiaom.co',
+                        help="The AppEngine deploy main server "
                              "[default: http://deploy.xiaom.co]")
+    parser.add_argument('--suffix', default='.xiaom.co',
+                        help="The AppEngine deploy server suffix "
+                             "[default: *.xiaom.co]")
     parser.add_argument('root_path', metavar='<app root>', nargs='?',
                       help="directory contains app.yaml "
                            "[default: find automatically in parent dirs]")
@@ -55,8 +60,15 @@ def main(args):
 def _main(args):
     root_path = args.root_path or find_app_root()
     appcfg = load_app_config(root_path)
+    appname = appcfg['application']
     activate_virtualenv(root_path)
-    servers = args.servers.split(',')
+
+    servers = get_deploy_servers(args.server, appname)
+    if not servers:
+        logger.info("No deploy servers allow")
+        sys.exit(1)
+    servers = ['http://%s%s' % (prefix, args.suffix) for prefix in servers]
+
     ret = sync_database(root_path, args.dump_mysql, servers[0])
     if 'succeeded' not in ret:
         logger.info("Syncdb failed, deploy exit ...")
@@ -75,14 +87,13 @@ def _main(args):
     logger.debug("app url: %s", vcs_url)
 
     logger.info("Deploying to servers...")
-    data = {'app_name': appcfg['application'],
+    data = {'app_name': appname,
             'app_url': vcs_url}
     if logger.getEffectiveLevel() < logging.INFO:
         data['verbose'] = '1'
     deploy_to_server(data, servers[0])
     if result[servers[0]] == 'Failed':
-        logger.warning("It seems that the deploy failed.  Try again later.  "
-                       "If the failure persists, contact DAE admin please.")
+        logger.warning(RED + "It seems that the deploy failed.  Try again later. \nIf the failure persists, contact DAE admin please.")
         sys.exit(1)
 
     servers.pop(0)
@@ -91,8 +102,18 @@ def _main(args):
         deploy_to_server(data, server)
     logger.info('==========RESULT==========')
     for k, v in result.iteritems():
-        logger.info('%s %s' % (k, v))
+        if v == 'Failed':
+            logger.info(RED + '%s %s' % (k, v))
+        else:
+            logger.info(GREEN + '%s %s' % (k, v))
 
+def get_deploy_servers(server, appname):
+    opener = FancyURLopener()
+    f = opener.open(os.path.join(server, 'dispatch', appname))
+    try:
+        return json.loads(f.read())
+    except:
+        return []
 
 def deploy_to_server(data, server):
     global result
@@ -108,9 +129,9 @@ def deploy_to_server(data, server):
         logger.log(loglevel, "%s", line.rstrip())
 
     if not any(word in line for word in ['succeeded', 'failed']):
-        result[server] = "Failed"
+        result[server] = 'Failed'
     else:
-        result[server] = "Succeeded"
+        result[server] = 'Succeeded'
 
 def push_modifications(root_path):
     if os.path.exists(os.path.join(root_path, '.hg')):
