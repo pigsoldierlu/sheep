@@ -75,10 +75,10 @@ def _main(args):
     if not servers:
         logger.info("No deploy servers allow")
         sys.exit(1)
-    servers = ['http://%s%s' % (prefix, args.suffix) for prefix in servers]
+
     logger.info(render_ok("Application allowed to deploy those servers"))
-    for server in servers:
-        logger.info(render_ok(server))
+    logger.info(render_ok(','.join(servers)))
+    servers = ['http://%s%s' % (prefix, args.suffix) for prefix in servers]
 
     ret = sync_database(root_path, args.dump_mysql, servers[0], verbose=verbose)
     if 'succeeded' not in ret:
