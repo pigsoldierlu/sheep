@@ -3,10 +3,9 @@
 
 import os
 import json
-import logging
-import urllib2
-
 import MySQLdb
+import logging
+from urllib import FancyURLopener
 
 from .util import find_app_root, load_dev_config, load_app_config
 
@@ -58,11 +57,15 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False,
 
 def verify(appname, dumps, data, reset, server, verbose):
     logger.debug(dumps)
-    req = urllib2.Request('%s/syncdb/' % server, 
-                            json.dumps({'application':appname, 'reset':reset, 'local':dumps, 'data':data, 'verbose': verbose})
-                         )
-    res = urllib2.urlopen(req)
-    return res.read()
+    post_data = json.dumps({'application':appname, 'reset':reset, 'local':dumps, 'data':data, 'verbose': verbose})
+    post_url = '%s/syncdb/' % server
+    f = opener.open(post_url, post_data)
+    line = ''
+    for line in iter(f.readline, ''):
+        logger.info(line)
+    #req = urllib2.Request()
+    #res = urllib2.urlopen(req)
+    return line
 
 def dumps(dumpfile, conn, sync_data = False):
     cur = conn.cursor()
