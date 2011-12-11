@@ -49,8 +49,9 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False,
             appname = appcfg['application']
             result = verify(appname, struct, data, reset, server, verbose)
             logger.info(result)
-        except Exception, e:
-            return str(e)
+        except:
+            logger.exception('Error occured.')
+            return
         finally:
             conn.close()
     return result
