@@ -66,6 +66,8 @@ def verify(appname, dumps, data, reset, server, verbose):
     for line in iter(f.readline, ''):
         line = line.strip()
         logger.debug(line)
+    if not verbose:
+        logger.info(line)
     return line
 
 def dumps(dumpfile, conn, sync_data = False):
