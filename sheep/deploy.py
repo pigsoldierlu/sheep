@@ -99,17 +99,18 @@ def _main(args):
     logger.info("Deploying to servers...")
     data = {'app_name': appname,
             'app_url': vcs_url}
+
     if logger.getEffectiveLevel() < logging.INFO:
         data['verbose'] = '1'
     deploy_to_server(data, servers[0])
+
     if result[servers[0]] == 'Failed':
         logger.warning(render_err("It seems that the deploy failed.  Try again later. If the failure persists, contact DAE admin please."))
         sys.exit(1)
 
     servers.pop(0)
-    for server in servers:
-        sync_database(root_path, args.dump_mysql, server)
-        deploy_to_server(data, server)
+    setup_on_nodes(servers, root_path, args.dump_mysql)
+
     logger.info('==========RESULT==========')
     for k, v in result.iteritems():
         if v == 'Failed':
@@ -124,6 +125,14 @@ def get_deploy_servers(server, appname):
         return json.loads(f.read())
     except:
         return []
+
+def setup_on_nodes(servers, root_path, dump_mysql):
+    for server in servers:
+        ret = sync_database(root_path, dump_mysql, server)
+        if 'succeeded' not in ret:
+            logger.info("Syncdb failed, deploy exit ...")
+            continue
+        deploy_to_server(data, server)
 
 def deploy_to_server(data, server):
     global result
