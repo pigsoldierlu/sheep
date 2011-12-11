@@ -16,6 +16,13 @@ result = {}
 
 RED = '\x1b[01;31m'
 GREEN = '\x1b[01;32m'
+NORMAL = '\x1b[0m'
+
+def render_ok(msg):
+    return GREEN + msg + NORMAL
+
+def render_err(msg):
+    return RED + msg + NORMAL
 
 def check_call(*args, **kwargs):
     kwargs.setdefault('log', logger.debug)
@@ -68,9 +75,9 @@ def _main(args):
         logger.info("No deploy servers allow")
         sys.exit(1)
     servers = ['http://%s%s' % (prefix, args.suffix) for prefix in servers]
-    logger.info(GREEN + "Application allowed to deploy those servers")
+    logger.info(render_ok("Application allowed to deploy those servers"))
     for server in servers:
-        logger.info(GREEN + server)
+        logger.info(render_ok(server))
 
     ret = sync_database(root_path, args.dump_mysql, servers[0])
     if 'succeeded' not in ret:
@@ -96,7 +103,7 @@ def _main(args):
         data['verbose'] = '1'
     deploy_to_server(data, servers[0])
     if result[servers[0]] == 'Failed':
-        logger.warning(RED + "It seems that the deploy failed.  Try again later. If the failure persists, contact DAE admin please.")
+        logger.warning(render_err("It seems that the deploy failed.  Try again later. If the failure persists, contact DAE admin please."))
         sys.exit(1)
 
     servers.pop(0)
@@ -106,9 +113,9 @@ def _main(args):
     logger.info('==========RESULT==========')
     for k, v in result.iteritems():
         if v == 'Failed':
-            logger.info(RED + "%s %s" % (k, v))
+            logger.info(render_err("%s %s" % (k, v)))
         else:
-            logger.info(GREEN + "%s %s" % (k, v))
+            logger.info(render_ok("%s %s" % (k, v)))
 
 def get_deploy_servers(server, appname):
     opener = FancyURLopener()
