@@ -9,8 +9,8 @@ from subprocess import check_call, call
 from paste.script.templates import Template, var, NoDefault
 from mako.template import Template as MakoTemplate
 
+from ..util import validate_appname
 from ..consts import DEFAULT_VENV_DIR
-from ..util import validate_appname, patch_sys_path
 
 def render_mako(content, vars, filename=None):
     return MakoTemplate(text=content, filename=filename).render(**vars)
@@ -65,11 +65,6 @@ class SHEEPTemplate(MyTemplate):
             print "Creating virtual environment at %s" % venvdir
         check_call(['virtualenv', '--no-site-packages', venvdir,
                     '--prompt', "(%s)" % vars['appname']])
-
-        getdir = lambda a, b: b(b(b(b(a))))
-        this_path = os.path.realpath(__file__)
-        sdkdir = getdir(this_path, os.path.dirname)
-        patch_sys_path(sdkdir, venvdir)
 
         if command.verbose:
             print "Installing patched pip"
