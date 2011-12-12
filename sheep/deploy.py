@@ -8,6 +8,7 @@ from urllib import FancyURLopener, urlencode
 import logging
 
 from .syncdb import sync_database
+from .statics import mirror_statics
 from .util import load_app_config, find_app_root, activate_virtualenv, \
         log_check_call, log_call, dump_requirements, get_vcs_url, get_vcs
 
@@ -83,6 +84,11 @@ def _main(args):
     ret = sync_database(root_path, args.dump_mysql, servers[0], verbose=verbose)
     if 'succeeded' not in ret:
         logger.info("Syncdb failed, deploy exit ...")
+        sys.exit(1)
+
+    ret = mirror_statics(root_path, server[0], verbose=verbose)
+    if 'succeeded' not in ret:
+        logger.info("Mirror failed, deploy exit ...")
         sys.exit(1)
 
     logger.info("Generating dependencies...")

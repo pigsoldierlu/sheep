@@ -28,6 +28,7 @@ def main():
         ('uninstall', 'uninstall', "Uninstall dependencies"),
         ('deploy', 'deploy', "Deploy application"),
         ('syncdb', 'syncdb', "Sync database"),
+        ('mirror', 'statics', "Mirror statics"),
         ('sync', 'sync', "Sync workspace"),
         ('log', 'log', "Get log from server"),
         ('dbshell', 'dbshell', "Open shell to control database"),
