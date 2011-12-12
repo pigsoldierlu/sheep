@@ -53,8 +53,9 @@ def main(args):
         logger.info('Installing requirements...')
         check_call([os.path.join(venvdir, 'bin', 'pip'), 'install',
                     '-r', os.path.join(approot, 'pip-req.txt'),
-                    '--index-url', 'file://%s/pip-download/' % approot,
-                    '--extra-index-url', 'http://pypi.python.org/simple/',
+                    '--no-index',
+#                    '--index-url', 'file://%s/pip-download/' % approot,
+                    '--fallback-index-url', 'http://pypi.python.org/simple/',
                     '--find-links', 'file://%s/pip-download/' % approot,
                    ])
 

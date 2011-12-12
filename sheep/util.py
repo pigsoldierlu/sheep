@@ -158,7 +158,7 @@ def get_vcs_url(approot):
                   stdout=PIPE)
         remote_url = p.stdout.read().strip()
         p = Popen(['hg', '-R', approot, 'identify', '-i'], stdout=PIPE)
-        revision = p.communicate()[0].strip()
+        revision = p.communicate()[0].strip().rstrip('+')
 
     elif vcs == 'svn':
         log_check_call(['svn', 'up'], log=logging.debug)
