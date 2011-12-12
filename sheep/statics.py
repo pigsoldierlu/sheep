@@ -37,7 +37,7 @@ def mirror_statics(root_path, server, verbose=False):
 
     logger.info("Mirror static files to UpYun...")
     configs = json.dumps(statics)
-    post_data = json.dumps({'application':appname, 'verbose': verbose, 'configs': configs})
+    post_data = json.dumps({'application': appcfg['application'], 'verbose': verbose, 'configs': configs})
     post_url = '%s/statics/' % server
 
     req = urllib2.Request(post_url, post_data)
