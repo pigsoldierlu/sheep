@@ -22,7 +22,7 @@ def populate_argument_parser(parser):
 def main(args):
     root_path = args.root_path or find_app_root()
     verbose = logger.getEffectiveLevel() < logging.INFO
-    mirror_statics(root_path, server=args.server, verbose=verbose)
+    logger.info(mirror_statics(root_path, server=args.server, verbose=verbose))
 
 def mirror_statics(root_path, server, verbose=False):
     appcfg = load_app_config(root_path)
