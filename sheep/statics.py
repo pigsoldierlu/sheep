@@ -22,7 +22,7 @@ def populate_argument_parser(parser):
 def main(args):
     root_path = args.root_path or find_app_root()
     verbose = logger.getEffectiveLevel() < logging.INFO
-    logger.info(mirror_statics(root_path, server=args.server, verbose=verbose))
+    mirror_statics(root_path, server=args.server, verbose=verbose)
 
 def mirror_statics(root_path, server, verbose=False):
     appcfg = load_app_config(root_path)
@@ -43,8 +43,10 @@ def mirror_statics(root_path, server, verbose=False):
     f = urllib2.urlopen(req)
     line = ''
     for line in iter(f.readline, ''):
-        line = line.strip()
-        logger.debug(line)
-    if not verbose:
-        logger.info(line)
+        try:
+            loglevel, line = line.split(':', 1)
+            loglevel = int(loglevel)
+        except ValueError:
+            loglevel = logging.DEBUG
+        logger.log(loglevel, "%s", line.rstrip())
     return line
