@@ -32,7 +32,7 @@ def mirror_statics(root_path, server, verbose=False):
             continue
         statics.append(handler_config)
     if not statics:
-        logger.info("No Statics configuration found")
+        logger.info("No Statics configuration found.")
         return 'Mirror succeeded.'
 
     logger.info("Mirror static files to UpYun...")
