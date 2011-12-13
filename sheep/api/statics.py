@@ -9,19 +9,8 @@ import os
 
 __all__ = ['static_files']
 
-def static_files(path, expire=900):
+def static_files(path):
     if os.environ.get('SHEEP_STATICS'):
-        key = os.environ['SHEEP_STATIC_KEY']
-        upt = make_upt(key, path, expire)
-        return os.environ['SHEEP_STATICS'] + path + '?_upt=' + upt
+        appname = os.environ['SHEEP_APPNAME']
+        return os.path.join(os.environ['SHEEP_STATICS'], appname, path)
     return path
-
-def make_upt(key, path, expire=900):
-    import time
-    import hashlib
-    e = time.time() + expire
-    s = key + '&' + str(e) + '&' + path
-    m = hashlib.md5()
-    m.update(s)
-    s = m.hexdigest()[12:20]
-    return s + str(e)
