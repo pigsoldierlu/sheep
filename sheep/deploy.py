@@ -86,7 +86,7 @@ def _main(args):
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)
 
-    ret = mirror_statics(root_path, server[0], verbose=verbose)
+    ret = mirror_statics(root_path, servers[0], verbose=verbose)
     if 'succeeded' not in ret:
         logger.info("Mirror failed, deploy exit ...")
         sys.exit(1)
