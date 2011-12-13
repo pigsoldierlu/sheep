@@ -31,8 +31,8 @@ def populate_argument_parser(parser):
 def main(args):
     root_path = args.root_path or find_app_root()
     verbose = logger.getEffectiveLevel() < logging.INFO
-    logger.info(sync_database(root_path, args.dump_mysql, server=args.server, \
-                         sync_data=args.data, reset=args.reset, verbose=verbose))
+    sync_database(root_path, args.dump_mysql, server=args.server, \
+                  sync_data=args.data, reset=args.reset, verbose=verbose)
 
 def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False, reset=False, verbose=False):
     appcfg = load_app_config(root_path)
