@@ -64,10 +64,12 @@ def verify(appname, dumps, data, reset, server, verbose):
     f = urllib2.urlopen(req)
     line = ''
     for line in iter(f.readline, ''):
-        line = line.strip()
-        logger.debug(line)
-    if not verbose:
-        logger.info(line)
+        try:
+            loglevel, line = line.split(':', 1)
+            loglevel = int(loglevel)
+        except ValueError:
+            loglevel = logging.DEBUG
+        logger.log(loglevel, "%s", line.rstrip())
     return line
 
 def dumps(dumpfile, conn, sync_data = False):
