@@ -38,7 +38,14 @@ class SHEEPApplication(Application):
             path_info = environ['PATH_INFO'] or '/'
             environ['sheep.config'] = self.appconf
             if self.handlers is None:
-                self.handlers = [handler_factory(h) for h in self.appconf['handlers']]
+                #self.handlers = [handler_factory(h) for h in self.appconf['handlers']]
+                self.handlers = []
+                for h in self.appconf['handlers']:
+                    try:
+                        app_handler = handler_factory(h)
+                        self.handlers.append(app_handler)
+                    except:
+                        continue
 
             for handler in self.handlers:
                 m = handler.match(path_info)
