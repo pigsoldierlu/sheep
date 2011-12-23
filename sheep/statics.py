@@ -21,10 +21,9 @@ def populate_argument_parser(parser):
 
 def main(args):
     root_path = args.root_path or find_app_root()
-    verbose = logger.getEffectiveLevel() < logging.INFO
-    mirror_statics(root_path, server=args.server, verbose=verbose)
+    mirror_statics(root_path, server=args.server)
 
-def mirror_statics(root_path, server, verbose=False):
+def mirror_statics(root_path, server):
     appcfg = load_app_config(root_path)
     statics = []
     for handler_config in appcfg['handlers']:
@@ -36,8 +35,9 @@ def mirror_statics(root_path, server, verbose=False):
         return 'Mirror succeeded.'
 
     logger.info("Mirror static files to UpYun...")
-    post_data = json.dumps({'application': appcfg['application'], 'verbose': verbose, 'configs': statics})
+    post_data = json.dumps({'application': appcfg['application'], 'configs': statics})
     post_url = '%s/statics/' % server
+    verbose = logger.getEffectiveLevel()
 
     req = urllib2.Request(post_url, post_data)
     f = urllib2.urlopen(req)
@@ -48,5 +48,6 @@ def mirror_statics(root_path, server, verbose=False):
             loglevel = int(loglevel)
         except ValueError:
             loglevel = logging.DEBUG
-        logger.log(loglevel, "%s", line.rstrip())
+        if loglevel >= verbose:
+            logger.log(loglevel, "%s", line.rstrip())
     return line

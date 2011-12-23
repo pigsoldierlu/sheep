@@ -13,7 +13,6 @@ from .util import load_app_config, find_app_root, activate_virtualenv, \
         log_check_call, log_call, dump_requirements, get_vcs_url, get_vcs
 
 logger = logging.getLogger(__name__)
-result = {}
 
 RED = '\x1b[01;31m'
 GREEN = '\x1b[01;32m'
@@ -70,7 +69,6 @@ def _main(args):
     appcfg = load_app_config(root_path)
     appname = appcfg['application']
     activate_virtualenv(root_path)
-    verbose = logger.getEffectiveLevel() < logging.INFO
 
     servers = get_deploy_servers(args.server, appname)
     if not servers:
@@ -81,12 +79,12 @@ def _main(args):
     logger.info(render_ok(','.join(servers)))
     servers = ['http://%s%s' % (prefix, args.suffix) for prefix in servers]
 
-    ret = sync_database(root_path, args.dump_mysql, servers[0], verbose=verbose)
+    ret = sync_database(root_path, args.dump_mysql, servers[0])
     if 'succeeded' not in ret:
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)
 
-    ret = mirror_statics(root_path, servers[0], verbose=verbose)
+    ret = mirror_statics(root_path, servers[0])
     if 'succeeded' not in ret:
         logger.info("Mirror failed, deploy exit ...")
         sys.exit(1)
@@ -107,16 +105,15 @@ def _main(args):
     data = {'app_name': appname,
             'app_url': vcs_url}
 
-    if verbose:
-        data['verbose'] = '1'
-    deploy_to_server(data, servers[0])
+    result = {}
+    result[servers[0]] = deploy_to_server(data, servers[0])
 
     if result[servers[0]] == 'Failed':
         logger.warning(render_err("It seems that the deploy failed.  Try again later. If the failure persists, contact DAE admin please."))
         sys.exit(1)
 
     servers.pop(0)
-    setup_on_nodes(servers, root_path, args.dump_mysql, data, verbose)
+    result.update(setup_on_nodes(servers, root_path, args.dump_mysql, data))
 
     logger.info('==========RESULT==========')
     for k, v in result.iteritems():
@@ -133,17 +130,19 @@ def get_deploy_servers(server, appname):
     except:
         return []
 
-def setup_on_nodes(servers, root_path, dump_mysql, data, verbose):
+def setup_on_nodes(servers, root_path, dump_mysql, data):
+    result = {}
     for server in servers:
-        ret = sync_database(root_path, dump_mysql, server, verbose=verbose)
+        ret = sync_database(root_path, dump_mysql, server)
         if 'succeeded' not in ret:
             logger.info("Syncdb failed, deploy exit ...")
             continue
-        deploy_to_server(data, server)
+        result[server] = deploy_to_server(data, server)
+    return result
 
 def deploy_to_server(data, server):
-    global result
     opener = FancyURLopener()
+    verbose = logger.getEffectiveLevel()
     f = opener.open(server, urlencode(data))
     line = ''  # to avoid NameError for line if f has no output at all.
     for line in iter(f.readline, ''):
@@ -152,12 +151,13 @@ def deploy_to_server(data, server):
             loglevel = int(loglevel)
         except ValueError:
             loglevel = logging.DEBUG
-        logger.log(loglevel, "%s", line.rstrip())
+        if loglevel >= verbose:
+            logger.log(loglevel, "%s", line.rstrip())
 
     if not any(word in line for word in ['succeeded', 'failed']):
-        result[server] = 'Failed'
+        return 'Failed'
     else:
-        result[server] = 'Succeeded'
+        return 'Succeeded'
 
 def push_modifications(root_path):
     if os.path.exists(os.path.join(root_path, '.hg')):
