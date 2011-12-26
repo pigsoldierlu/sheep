@@ -82,7 +82,7 @@ class SHEEPTemplate(MyTemplate):
             check_call(['svn', 'revert', os.path.join(output_dir, 'permdir')])
         elif os.path.exists(os.path.join(output_dir, '.hg')):
             ignore_file = open(os.path.join(output_dir, '.hgignore'), 'w+')
-            content = "syntax: glob\n\nvenv\npermdir"
+            content = "syntax: glob\n\nvenv\npermdir\n*.py[co]"
             ignore_file.write(content)
             ignore_file.close()
             check_call(['hg', 'add', output_dir])
