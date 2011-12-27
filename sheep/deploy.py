@@ -84,11 +84,6 @@ def _main(args):
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)
 
-    ret = mirror_statics(root_path, servers[0])
-    if 'succeeded' not in ret:
-        logger.info("Mirror failed, deploy exit ...")
-        sys.exit(1)
-
     logger.info("Generating dependencies...")
     dump_requirements(root_path)
 
@@ -110,6 +105,11 @@ def _main(args):
 
     if result[servers[0]] == 'Failed':
         logger.warning(render_err("It seems that the deploy failed.  Try again later. If the failure persists, contact DAE admin please."))
+        sys.exit(1)
+
+    ret = mirror_statics(root_path, servers[0])
+    if 'succeeded' not in ret:
+        logger.info("Mirror failed, deploy exit ...")
         sys.exit(1)
 
     servers.pop(0)
