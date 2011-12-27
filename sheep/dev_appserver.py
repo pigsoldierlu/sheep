@@ -2,7 +2,6 @@
 # encoding: UTF-8
 
 import os, sys
-import yaml
 
 from .util import load_app_config, activate_virtualenv, find_app_root, \
         load_dev_config
