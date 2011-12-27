@@ -2,7 +2,7 @@
 # encoding: UTF-8
 
 import os, sys, json
-from subprocess import Popen, PIPE, CalledProcessError
+from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from collections import defaultdict
 from urllib import FancyURLopener, urlencode
 import logging
@@ -25,10 +25,14 @@ def render_err(msg):
     return RED + msg + NORMAL
 
 def check_call(*args, **kwargs):
+    kwargs['stdout'] = PIPE
+    kwargs['stderr'] = STDOUT
     kwargs.setdefault('log', logger.debug)
     return log_check_call(*args, **kwargs)
 
 def call(*args, **kwargs):
+    kwargs['stdout'] = PIPE
+    kwargs['stderr'] = STDOUT
     kwargs.setdefault('log', logger.debug)
     return log_call(*args, **kwargs)
 
