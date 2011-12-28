@@ -10,7 +10,7 @@ import logging
 from .syncdb import sync_database
 from .statics import mirror_statics
 from .util import load_app_config, find_app_root, activate_virtualenv, \
-        log_check_call, log_call, dump_requirements, get_vcs_url, get_vcs
+        log_check_call, log_call, dump_requirements, get_vcs_url
 
 logger = logging.getLogger(__name__)
 
