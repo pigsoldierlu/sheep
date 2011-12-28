@@ -110,7 +110,7 @@ def install_gevent(venvdir, gevent_version=GEVENT_VERSION, pkgdir=None):
         cmd += ['--find-links', 'file://'+pkgdir,
                 '--no-index',
                ]
-    
+
     env = os.environ.copy()
     env['LC_ALL'] = 'C'
     p = Popen(cmd, stdout=PIPE, env=env)

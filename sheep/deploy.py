@@ -88,8 +88,8 @@ def _main(args):
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)
 
-    logger.info("Generating dependencies...")
-    dump_requirements(root_path)
+    #logger.info("Generating dependencies...")
+    #dump_requirements(root_path)
 
     logger.info("Pushing modifications...")
     push_modifications(root_path)
