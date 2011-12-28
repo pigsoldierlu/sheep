@@ -5,7 +5,7 @@ import os, sys
 
 from .util import load_app_config, activate_virtualenv, find_app_root, \
         load_dev_config
-from .app import SHEEPApplication
+from .appserver import SHEEPApplication
 from .monkey import patch_all
 
 def populate_argument_parser(parser):
