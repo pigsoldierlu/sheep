@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
-import os
 import sys
 from websocket import create_connection
 from .util import find_app_root, load_app_config

@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
-import os
 import json
 import urllib2
 import MySQLdb
@@ -56,7 +55,6 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False,
 
 def verify(appname, dumps, data, reset, server):
     logger.debug(dumps)
-    verbose = logger.getEffectiveLevel()
     post_data = json.dumps({'application':appname, 'reset':reset, 'local':dumps, 'data':data})
     post_url = '%s/syncdb/' % server
 
@@ -69,8 +67,7 @@ def verify(appname, dumps, data, reset, server):
             loglevel = int(loglevel)
         except ValueError:
             loglevel = logging.DEBUG
-        if loglevel >= verbose:
-            logger.log(loglevel, "%s", line.rstrip())
+        logger.log(loglevel, "%s", line.rstrip())
     return line
 
 def dumps(dumpfile, conn, sync_data = False):

@@ -50,7 +50,6 @@ def main(args):
         check_call([os.path.join(venvdir, 'bin', 'pip'), 'install',
                     '-r', os.path.join(approot, 'pip-req.txt'),
                     '--no-index',
-#                    '--index-url', 'file://%s/pip-download/' % approot,
                     '--fallback-index-url', 'http://pypi.python.org/simple/',
                     '--find-links', 'file://%s/pip-download/' % approot,
                    ])

@@ -3,8 +3,7 @@
 
 import os, sys
 import re
-from subprocess import Popen, PIPE, STDOUT, CalledProcessError, call, \
-        check_call
+from subprocess import Popen, PIPE, STDOUT, CalledProcessError, call
 import logging
 import tempfile
 

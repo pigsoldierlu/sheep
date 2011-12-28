@@ -1,16 +1,20 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
-import os, sys, json
-from subprocess import Popen, PIPE, STDOUT, CalledProcessError
+import os
+import sys
+import json
+import logging
+import urlparse
+import ConfigParser
 from collections import defaultdict
 from urllib import FancyURLopener, urlencode
-import logging
+from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 
 from .syncdb import sync_database
 from .statics import mirror_statics
 from .util import load_app_config, find_app_root, activate_virtualenv, \
-        log_check_call, log_call, dump_requirements, get_vcs_url
+        log_check_call, log_call, get_vcs_url, get_vcs
 
 logger = logging.getLogger(__name__)
 
@@ -25,14 +29,10 @@ def render_err(msg):
     return RED + msg + NORMAL
 
 def check_call(*args, **kwargs):
-    kwargs['stdout'] = PIPE
-    kwargs['stderr'] = STDOUT
     kwargs.setdefault('log', logger.debug)
     return log_check_call(*args, **kwargs)
 
 def call(*args, **kwargs):
-    kwargs['stdout'] = PIPE
-    kwargs['stderr'] = STDOUT
     kwargs.setdefault('log', logger.debug)
     return log_call(*args, **kwargs)
 
@@ -48,15 +48,15 @@ def populate_argument_parser(parser):
     parser.add_argument('-s', '--server', default='http://deploy.xiaom.co',
                         help="The AppEngine deploy main server "
                              "[default: http://deploy.xiaom.co]")
-    parser.add_argument('--suffix', default='.xiaom.co',
-                        help="The AppEngine deploy server suffix "
-                             "[default: *.xiaom.co]")
     parser.add_argument('root_path', metavar='<app root>', nargs='?',
                       help="directory contains app.yaml "
                            "[default: find automatically in parent dirs]")
     parser.add_argument('--dump-mysql', type=str, default='db_dumps.sql',
                         help="Path and filename to store mysql dumping file"
                              "[default: named db_dumps.sql store in current dir]")
+    parser.add_argument('--fast', default=False,
+                        help="Deploy on all nodes in parallel. "
+                             "Availability may be affected.")
 
 def main(args):
     try:
@@ -70,26 +70,16 @@ def main(args):
 
 def _main(args):
     root_path = args.root_path or find_app_root()
+    project_source = get_project_source_url(root_path)
     appcfg = load_app_config(root_path)
-    appname = appcfg['application']
     activate_virtualenv(root_path)
 
-    servers = get_deploy_servers(args.server, appname)
-    if not servers:
-        logger.info("No deploy servers allow")
-        sys.exit(1)
+    sync_database(root_path, args.dump_mysql, args.server)
 
-    logger.info(render_ok("Application allowed to deploy those servers"))
-    logger.info(render_ok(','.join(servers)))
-    servers = ['http://%s%s' % (prefix, args.suffix) for prefix in servers]
-
-    ret = sync_database(root_path, args.dump_mysql, servers[0])
+    ret = sync_database(root_path, args.dump_mysql, args.server)
     if 'succeeded' not in ret:
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)
-
-    #logger.info("Generating dependencies...")
-    #dump_requirements(root_path)
 
     logger.info("Pushing modifications...")
     push_modifications(root_path)
@@ -101,72 +91,80 @@ def _main(args):
     logger.debug("app url: %s", vcs_url)
 
     logger.info("Deploying to servers...")
-    data = {'app_name': appname,
+    data = {'app_name': appcfg['application'],
             'app_url': vcs_url}
+    if args.fast:
+        data['fast'] = '1'
 
-    result = {}
-    result[servers[0]] = deploy_to_server(data, servers[0])
-
-    if result[servers[0]] == 'Failed':
-        logger.warning(render_err("It seems that the deploy failed.  Try again later. If the failure persists, contact DAE admin please."))
-        sys.exit(1)
-
-    ret = mirror_statics(root_path, servers[0])
-    if 'succeeded' not in ret:
-        logger.info("Mirror failed, deploy exit ...")
-        sys.exit(1)
-
-    servers.pop(0)
-    result.update(setup_on_nodes(servers, root_path, args.dump_mysql, data))
-
-    logger.info('==========RESULT==========')
-    for k, v in result.iteritems():
-        if v == 'Failed':
-            logger.info(render_err("%s %s" % (k, v)))
-        else:
-            logger.info(render_ok("%s %s" % (k, v)))
-
-def get_deploy_servers(server, appname):
     opener = FancyURLopener()
-    f = opener.open(os.path.join(server, 'dispatch', appname))
-    try:
-        return json.loads(f.read())
-    except:
-        return []
-
-def setup_on_nodes(servers, root_path, dump_mysql, data):
-    result = {}
-    for server in servers:
-        ret = sync_database(root_path, dump_mysql, server)
-        if 'succeeded' not in ret:
-            logger.info("Syncdb failed, deploy exit ...")
-            continue
-        result[server] = deploy_to_server(data, server)
-    return result
-
-def deploy_to_server(data, server):
-    opener = FancyURLopener()
-    verbose = logger.getEffectiveLevel()
-    f = opener.open(server, urlencode(data))
-    line = ''  # to avoid NameError for line if f has no output at all.
+    f = opener.open(args.server, urlencode(data))
+    line = ''
     for line in iter(f.readline, ''):
         try:
             loglevel, line = line.split(':', 1)
             loglevel = int(loglevel)
         except ValueError:
             loglevel = logging.DEBUG
-        if loglevel >= verbose:
-            logger.log(loglevel, "%s", line.rstrip())
+        logger.log(loglevel, "%s", line.rstrip())
 
     if not any(word in line for word in ['succeeded', 'failed']):
-        return 'Failed'
+        logger.warning(render_err("It seems that the deploy failed.  Try again later.  "
+                       "If the failure persists, contact DAE admin please."))
     else:
-        return 'Succeeded'
+        logger.info(render_ok('Deploy successed'))
+
+def scm_type(root_path):
+    '''Get type of SCM(Software Configuration Management)'''
+    if os.path.exists(os.path.join(root_path, '.hg')):
+        return 'hg'
+    elif os.path.exists(os.path.join(root_path, '.svn')):
+        return 'svn'
+
+def get_project_source_url(root_path):
+    scm = scm_type(root_path)
+    if scm == 'hg':
+        return get_project_source_url_hg(root_path)
+    if scm == 'svn':
+        return get_project_source_url_svn(root_path)
+
+def get_project_source_url_hg(root_path):
+    conf = ConfigParser.ConfigParser()
+    hgrc = os.path.join(root_path, '.hg/hgrc')
+    conf.read(hgrc)
+    source_url = conf.get('paths', 'default')
+
+    # hide username and password
+    parts = urlparse.urlsplit(source_url)
+    if parts.username or parts.password:
+        new = list(parts)
+        new[1] = parts.netloc[parts.netloc.find('@')+1:]
+        source_url = urlparse.urlunsplit(new)
+
+    return source_url
+
+def get_project_source_url_svn(root_path):
+    info = run_command('svn info %s' % root_path)
+    url = [line.strip() for line in info.split('\n')
+            if line.startswith('URL:')]
+    if url:
+        return url[0][5:]
+    logger.error('can not find svn respository url in dir %s' % root_path)
+    raise Exception('not find svn respository url')
+
+def run_command(command):
+    p = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p.communicate()
+    retcode = p.wait()
+    if retcode:
+        raise Exception('run command (%s) failed: %d\n%s\n%s' % (
+            command, retcode, stdout, stderr))
+    return stdout
 
 def push_modifications(root_path):
-    if os.path.exists(os.path.join(root_path, '.hg')):
+    scm = scm_type(root_path)
+    if scm == 'hg':
         push_hg_modifications(root_path)
-    elif os.path.exists(os.path.join(root_path, '.svn')):
+    elif scm == 'svn':
         push_svn_modifications(root_path)
 
 def push_hg_modifications(root_path):
