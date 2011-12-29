@@ -37,7 +37,6 @@ def mirror_statics(root_path, server):
     logger.info("Mirror static files to UpYun...")
     post_data = json.dumps({'application': appcfg['application'], 'configs': statics})
     post_url = '%s/statics/' % server
-    verbose = logger.getEffectiveLevel()
 
     req = urllib2.Request(post_url, post_data)
     f = urllib2.urlopen(req)
@@ -48,6 +47,5 @@ def mirror_statics(root_path, server):
             loglevel = int(loglevel)
         except ValueError:
             loglevel = logging.DEBUG
-        if loglevel >= verbose:
-            logger.log(loglevel, "%s", line.rstrip())
+        logger.log(loglevel, "%s", line.rstrip())
     return line

@@ -93,7 +93,6 @@ def _main(args):
 
 def deploy_to_server(data, server):
     opener = FancyURLopener()
-    verbose = logger.getEffectiveLevel()
     f = opener.open(server, urlencode(data))
     line = ''  # to avoid NameError for line if f has no output at all.
     for line in iter(f.readline, ''):
@@ -102,8 +101,7 @@ def deploy_to_server(data, server):
             loglevel = int(loglevel)
         except ValueError:
             loglevel = logging.DEBUG
-        if loglevel >= verbose:
-            logger.log(loglevel, "%s", line.rstrip())
+        logger.log(loglevel, "%s", line.rstrip())
 
     if not any(word in line for word in ['succeeded', 'failed']):
         return 'Failed'
