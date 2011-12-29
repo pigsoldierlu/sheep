@@ -14,16 +14,6 @@ from .util import load_app_config, find_app_root, activate_virtualenv, \
 
 logger = logging.getLogger(__name__)
 
-RED = '\x1b[01;31m'
-GREEN = '\x1b[01;32m'
-NORMAL = '\x1b[0m'
-
-def render_ok(msg):
-    return GREEN + msg + NORMAL
-
-def render_err(msg):
-    return RED + msg + NORMAL
-
 def check_call(*args, **kwargs):
     kwargs.setdefault('log', logger.debug)
     return log_check_call(*args, **kwargs)
@@ -44,9 +34,9 @@ def populate_argument_parser(parser):
     parser.add_argument('-s', '--server', default='http://deploy.xiaom.co',
                         help="The AppEngine deploy main server "
                              "[default: http://deploy.xiaom.co]")
-    parser.add_argument('--suffix', default='.xiaom.co',
-                        help="The AppEngine deploy server suffix "
-                             "[default: *.xiaom.co]")
+    parser.add_argument('--fast', default=False,
+                        help="Deploy on all nodes in parallel. "
+                             "Availability may be affected.")
     parser.add_argument('root_path', metavar='<app root>', nargs='?',
                       help="directory contains app.yaml "
                            "[default: find automatically in parent dirs]")
@@ -67,19 +57,9 @@ def main(args):
 def _main(args):
     root_path = args.root_path or find_app_root()
     appcfg = load_app_config(root_path)
-    appname = appcfg['application']
     activate_virtualenv(root_path)
 
-    servers = get_deploy_servers(args.server, appname)
-    if not servers:
-        logger.info("No deploy servers allow")
-        sys.exit(1)
-
-    logger.info(render_ok("Application allowed to deploy those servers"))
-    logger.info(render_ok(','.join(servers)))
-    servers = ['http://%s%s' % (prefix, args.suffix) for prefix in servers]
-
-    ret = sync_database(root_path, args.dump_mysql, servers[0])
+    ret = sync_database(root_path, args.dump_mysql, args.server)
     if 'succeeded' not in ret:
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)
@@ -94,48 +74,22 @@ def _main(args):
     logger.debug("app url: %s", vcs_url)
 
     logger.info("Deploying to servers...")
-    data = {'app_name': appname,
+    data = {'app_name': appcfg['application'],
             'app_url': vcs_url}
 
-    result = {}
-    result[servers[0]] = deploy_to_server(data, servers[0])
+    if args.fast:
+        data['fast'] = '1'
 
-    if result[servers[0]] == 'Failed':
-        logger.warning(render_err("It seems that the deploy failed.  Try again later. If the failure persists, contact DAE admin please."))
+    ret = deploy_to_server(data, args.server)
+    if ret == 'Failed':
+        logger.warning("It seems that the deploy failed.  Try again later.  "
+                       "If the failure persists, contact DAE admin please.")
         sys.exit(1)
 
-    ret = mirror_statics(root_path, servers[0])
+    ret = mirror_statics(root_path, args.server)
     if 'succeeded' not in ret:
         logger.info("Mirror failed, deploy exit ...")
         sys.exit(1)
-
-    servers.pop(0)
-    result.update(setup_on_nodes(servers, root_path, args.dump_mysql, data))
-
-    logger.info('==========RESULT==========')
-    for k, v in result.iteritems():
-        if v == 'Failed':
-            logger.info(render_err("%s %s" % (k, v)))
-        else:
-            logger.info(render_ok("%s %s" % (k, v)))
-
-def get_deploy_servers(server, appname):
-    opener = FancyURLopener()
-    f = opener.open(os.path.join(server, 'dispatch', appname))
-    try:
-        return json.loads(f.read())
-    except:
-        return []
-
-def setup_on_nodes(servers, root_path, dump_mysql, data):
-    result = {}
-    for server in servers:
-        ret = sync_database(root_path, dump_mysql, server)
-        if 'succeeded' not in ret:
-            logger.info("Syncdb failed, deploy exit ...")
-            continue
-        result[server] = deploy_to_server(data, server)
-    return result
 
 def deploy_to_server(data, server):
     opener = FancyURLopener()
