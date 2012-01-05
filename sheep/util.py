@@ -101,8 +101,6 @@ def log_call(*args, **kwargs):
     log = kwargs.pop('log', logging.debug)
     need_input = kwargs.pop('need_input', False)
     record_output = kwargs.pop('record_output', False)
-    kwargs['stdout'] = PIPE
-    kwargs['stderr'] = STDOUT
 
     if need_input:
         # TODO: use log even if need_input
@@ -113,6 +111,8 @@ def log_call(*args, **kwargs):
     else:
         kwargs['stdin'] = open('/dev/null')
 
+    kwargs['stdout'] = PIPE
+    kwargs['stderr'] = STDOUT
     p = Popen(*args, **kwargs)
     output = []
     for line in p.stdout:
