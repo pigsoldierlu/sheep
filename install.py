@@ -61,10 +61,6 @@ def install_sheep_sdk(dest_dir, revision=None):
     check_call([pip_path, 'install',
                 os.path.join(pkgdir, 'pip-%s.tar.gz' % PIP_VERSION)])
 
-    # gevent need special installation method, as `pip install gevent` does
-    # not work on MacPorts
-    install_gevent(dest_dir, pkgdir=pkgdir)
-
     check_call([pip_path, 'install',
                 '-r', os.path.join(src_dir, 'requirements.txt'),
                 '--find-links', 'file://' + pkgdir,
@@ -97,49 +93,6 @@ def which(cmd):
             name = os.path.join(dir, cmd)
             if os.path.exists(name) and os.access(name, os.F_OK|os.X_OK):
                 return name
-
-def install_gevent(venvdir, gevent_version=GEVENT_VERSION, pkgdir=None):
-    """download libevent source code before install it."""
-
-    if os.path.exists(os.path.join(venvdir, 'build', 'gevent')):
-        shutil.rmtree(os.path.join(venvdir, 'build', 'gevent'))
-
-    cmd = [os.path.join(venvdir, 'bin', 'pip'), 'install',
-           '--no-install', 'gevent==%s' % gevent_version]
-    if pkgdir:
-        cmd += ['--find-links', 'file://'+pkgdir,
-                '--no-index',
-               ]
-
-    env = os.environ.copy()
-    env['LC_ALL'] = 'C'
-    p = Popen(cmd, stdout=PIPE, env=env)
-    satisfied = False
-    for line in iter(p.stdout.readline, ''):
-        sys.stdout.write(line)
-        if "Requirement already satisfied " in line \
-           and "gevent==%s" % gevent_version in line:
-            satisfied = True
-    retcode = p.wait()
-    if retcode != 0:
-        raise CalledProcessError(retcode, cmd)
-
-    if satisfied:
-        return
-
-    # patch fetch_libevent.py to use libevent in our repository
-    fetch_libevent_path = os.path.join(venvdir, 'build', 'gevent',
-                                       'fetch_libevent.py')
-    content = open(fetch_libevent_path).read()
-    content = content.replace('http://monkey.org/~provos/libevent-1.4.14b-stable.tar.gz',
-                              'file://'+pkgdir+'/libevent-1.4.14b-stable.tar.gz')
-    open(fetch_libevent_path, 'w').write(content)
-    check_call([os.path.join(venvdir, 'bin', 'python'),
-                os.path.join(venvdir, 'build', 'gevent',
-                             'fetch_libevent.py')])
-
-    check_call([os.path.join(venvdir, 'bin', 'pip'), 'install',
-                '--no-download', 'gevent==%s' % gevent_version])
 
 
 if __name__ == '__main__':
