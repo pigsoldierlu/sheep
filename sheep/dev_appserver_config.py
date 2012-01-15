@@ -43,7 +43,7 @@ class Reloader(threading.Thread):
 
     def run(self):
         modify_times = {}
-        monitor_dirs = os.environ.get('DAE_RELOAD_MONITOR_DIRS', '').split(':')
+        monitor_dirs = os.environ.get('SHEEP_RELOAD_MONITOR_DIRS', '').split(':')
 
         for monitor_dir in monitor_dirs:
             for root, dirs, files in os.walk(monitor_dir):
@@ -67,5 +67,4 @@ class Reloader(threading.Thread):
 def when_ready(server):
     """Gunicorn server ready hook
     """
-
     Reloader(server).start()

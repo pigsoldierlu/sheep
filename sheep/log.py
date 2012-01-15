@@ -16,7 +16,8 @@ def main(args):
     appname = appcfg['application']
     try:
         ws = create_connection("ws://%s.xiaom.co:5000/_sheep/log/" % appname)
-    except:
+    except Exception, e:
+        print e
         print 'Can\'t connect remote.'
         return
     line = ''
