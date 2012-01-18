@@ -8,6 +8,7 @@ from urllib import FancyURLopener, urlencode
 import logging
 
 from .syncdb import sync_database
+from .upgrade import check_version
 from .statics import mirror_statics
 from .util import load_app_config, find_app_root, activate_virtualenv, \
         log_check_call, log_call, get_vcs_url
@@ -46,6 +47,15 @@ def populate_argument_parser(parser):
 
 def main(args):
     try:
+        flag, rv, lv = check_version()
+        if flag:
+            ret = 'SDK need upgrade\n'
+            ret += 'Remote revision: %d\n' % rv
+            ret += 'Local revision: %d\n' % lv
+            ret += 'Plz use sheep upgrade --up'
+        else:
+            ret = 'SDK up-to-date'
+        print ret
         return _main(args)
     except CalledProcessError, e:
         logger.exception("Error when call subprocess:")
