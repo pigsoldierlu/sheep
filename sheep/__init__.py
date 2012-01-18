@@ -33,6 +33,7 @@ def main():
         ('log', 'log', "Get log from server"),
         ('dbshell', 'dbshell', "Open shell to control database"),
         ('shell', 'shell', "Open shell for debug online"),
+        ('upgrade', 'upgrade', "Upgrade SDK version"),
     ]
     for command, module_name, help_text in subcommands:
         if command in ('install', 'uninstall'):
