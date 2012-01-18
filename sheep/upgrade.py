@@ -23,7 +23,6 @@ def main(args):
         ret = 'SDK up-to-date'
     if not args.up:
         return ret
-    print ret
 
     package_path = os.path.dirname(sdk_path)
     target_path = os.path.dirname(package_path)
