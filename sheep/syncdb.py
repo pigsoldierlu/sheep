@@ -107,7 +107,7 @@ def dump_data(conn, dumpfile, table):
         data = []
         for column in row:
             if isinstance(column, unicode):
-                data.append(column.encode('utf-8')
+                data.append(column.encode('utf-8'))
                 continue
             data.append(str(column))
         datas.append(data)
