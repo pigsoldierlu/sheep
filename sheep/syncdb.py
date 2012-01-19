@@ -102,7 +102,15 @@ def dump_data(conn, dumpfile, table):
     rows = cur.fetchall()
     if not rows:
         return []
-    datas = [[str(coloum) for coloum in row] for row in rows]
+    datas = []
+    for row in rows:
+        data = []
+        for column in row:
+            if isinstance(column, unicode):
+                data.append(column.encode('utf-8')
+                continue
+            data.append(str(column))
+        datas.append(data)
     for data in datas:
         dumpfile.write(json.dumps(data))
         dumpfile.write('\r\n')
