@@ -5,7 +5,9 @@ import os
 import re
 import time
 import logging
+import tempfile
 import mimetypes
+import gevent_profiler
 
 from gunicorn.app.base import Application
 from gunicorn import util
@@ -13,6 +15,7 @@ from gunicorn import util
 from .util import load_app_config
 
 logger = logging.getLogger()
+gevent_profiler.set_summary_output(None)
 
 class Error(Exception):
     """Base-class for exceptions in this module."""
@@ -33,12 +36,29 @@ class SHEEPApplication(Application):
     def load(self):
         return self
 
+    def profile_call(self, handler, environ, start_response):
+        stats = tempfile.NamedTemporaryFile(delete=True)
+        trace = tempfile.NamedTemporaryFile(delete=True)
+        gevent_profiler.set_stats_output(stats.name)
+        gevent_profiler.set_trace_output(trace.name)
+        gevent_profiler.attach()
+        for line in handler(environ, start_response):
+            yield line
+        gevent_profiler.detach()
+        yield '<pre>'
+        for line in open(stats.name, 'r').xreadlines():
+            yield line
+        for line in open(trace.name, 'r').xreadlines():
+            yield line
+        yield '</pre>'
+        stats.close()
+        trace.close()
+
     def __call__(self, environ, start_response):
         try:
             path_info = environ['PATH_INFO'] or '/'
             environ['sheep.config'] = self.appconf
             if self.handlers is None:
-                #self.handlers = [handler_factory(h) for h in self.appconf['handlers']]
                 self.handlers = []
                 for h in self.appconf['handlers']:
                     try:
@@ -51,6 +71,9 @@ class SHEEPApplication(Application):
                 m = handler.match(path_info)
                 if m:
                     environ['sheep.matched'] = m
+                    if environ['QUERY_STRING'] and \
+                            environ['QUERY_STRING'].find('_sheep_profile=1') > -1:
+                        return self.profile_call(handler, environ, start_response)
                     return handler(environ, start_response)
         except:
             logger.exception("error occurred when handle request")
@@ -62,7 +85,7 @@ class SHEEPApplication(Application):
 def handler_factory(config):
     mapping = [('wsgi_app', WSGIAppHandler),
                ('static_files', StaticFilesHandler),
-               ('paster', PasterHandler),
+               ('paste', PasteHandler),
               ]
     for handler_type, cls in mapping:
         if handler_type in config:
@@ -108,12 +131,12 @@ class WSGIAppHandler(BaseHandler, WholeMatchMixIn):
     def make_app(self, config):
         return util.import_app(config['wsgi_app'])
 
-class PasterHandler(WSGIAppHandler):
+class PasteHandler(WSGIAppHandler):
     def make_app(self, config):
         from paste.deploy import loadapp
         from paste.deploy.converters import asbool
 
-        ini = devini = config['paster']
+        ini = devini = config['paste']
         if ':' in ini:
             ini, devini = ini.split(':', 1)
 
