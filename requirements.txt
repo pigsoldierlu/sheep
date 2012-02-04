@@ -12,3 +12,4 @@ gunicorn==0.13.4
 mercurial==2.0.1
 virtualenv==1.7
 websocket-client==0.4.1
+python-gevent-profiler==0.2
