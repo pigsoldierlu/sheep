@@ -58,6 +58,8 @@ def gunicorn_run():
         install_as_MySQLdb()
 
     app = SHEEPApplication()
+    dev_handler = {'url': '/_dev/.*', 'wsgi_app': 'sheep.dev:dispatcher'}
+    app.appconf['handlers'].insert(0, dev_handler)
     sys.path.insert(0, app.root_path)
     activate_virtualenv(app.root_path)
     import logging

@@ -11,5 +11,6 @@ greenlet==0.3.2
 gunicorn==0.13.4
 mercurial==2.0.1
 virtualenv==1.7
+web.py==0.36
 websocket-client==0.4.1
 python-gevent-profiler==0.2
