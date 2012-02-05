@@ -34,10 +34,6 @@ def output(stat_file):
 class profile:
     def GET(self):
         web.header('Content-Type', 'text/html')
-        oid = status()
-        if not oid and web.ctx.env['SERVER_NAME'] != '127.0.0.1' and \
-                web.ctx.env['SERVER_NAME'] != 'localhost':
-            return 'please log in: ' + webopenid.form('/_dev/profile/openid')
         params = web.input(_sheep_app_server=None, _sheep_profile_count=None, _sheep_pid=None)
         if not web.ctx.env.get('QUERY_STRING', None):
             return FORM_HTML % socket.gethostname()
