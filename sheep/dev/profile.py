@@ -5,7 +5,7 @@ import os
 import web
 import socket
 import gevent_profiler
-from sheep.app import SHEEPApplication
+from sheep.appserver import SHEEPApplication
 
 urls = (
     '/_dev/profile/', 'profile',
