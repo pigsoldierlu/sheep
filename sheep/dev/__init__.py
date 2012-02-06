@@ -4,7 +4,7 @@ import re
 
 def dispatcher(environ, start_response):
     path = environ['PATH_INFO']
-    pattern = re.compile('/_dev/(?P<api>.*)/.*', re.I)
+    pattern = re.compile('/_sheep/(?P<api>.*)/.*', re.I)
     match = pattern.match(path)
     if not match or not match.groupdict():
         return 'Not allowed'

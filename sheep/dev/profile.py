@@ -8,13 +8,13 @@ import gevent_profiler
 from sheep.appserver import SHEEPApplication
 
 urls = (
-    '/_dev/profile/', 'profile',
+    '/_sheep/profile/', 'profile',
 )
 
 app = web.application(urls, globals()).wsgifunc()
 
 FORM_HTML = r'''
-<form action="/_dev/profile/" method="get">
+<form action="/_sheep/profile/" method="get">
     <label for="req_count">需要分析的request数目:</label>
     <input type="text" name="_sheep_profile_count" value="100" />
     <input type="hidden" name="_sheep_app_server" value="%s" />
@@ -22,7 +22,7 @@ FORM_HTML = r'''
 </form>'''
 
 FRESH_HTML = r'''
-%d/%d<a href="/_dev/profile/?_sheep_profile_count=%d&_sheep_app_server=%s&_sheep_pid=%d">刷新</a>
+%d/%d<a href="/_sheep/profile/?_sheep_profile_count=%d&_sheep_app_server=%s&_sheep_pid=%d">刷新</a>
 '''
 
 def output(stat_file):
@@ -46,7 +46,7 @@ class profile:
         count = int(count)
         if not pid:
             pid = os.getpid()
-            raise web.seeother("/_dev/profile/?_sheep_profile_count=%d&_sheep_app_server=%s&_sheep_pid=%d" % \
+            raise web.seeother("/_sheep/profile/?_sheep_profile_count=%d&_sheep_app_server=%s&_sheep_pid=%d" % \
                     (count, backend, pid))
         else:
             pid = int(pid)
