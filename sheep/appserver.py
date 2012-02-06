@@ -72,7 +72,7 @@ class SHEEPApplication(Application):
                 if m:
                     environ['sheep.matched'] = m
                     if environ['QUERY_STRING'] and \
-                            environ['QUERY_STRING'].find('_sheep_profile=1') > -1:
+                            '_sheep_profile=1' in environ['QUERY_STRING']:
                         return self.profile_call(handler, environ, start_response)
                     return handler(environ, start_response)
         except:
