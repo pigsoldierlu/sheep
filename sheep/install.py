@@ -40,8 +40,7 @@ def main(args, argv):
         call(['svn', 'add', '-q', pip_download_dir] + \
              glob(os.path.join(pip_download_dir, '*')))
     elif os.path.exists(os.path.join(approot, '.hg')):
-        call(['hg', 'add', pip_download_dir] + \
-             glob(os.path.join(pip_download_dir, '*')))
+        call(['hg', 'add', pip_download_dir])
     return retval
 
 
