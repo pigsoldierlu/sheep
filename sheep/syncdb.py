@@ -98,6 +98,7 @@ def dumps(dumpfile, conn, sync_data = False):
 
 def dump_data(conn, dumpfile, table):
     cur = conn.cursor()
+    cur.execute(r'SET NAMES UTF8;')
     cur.execute(r'SELECT * FROM %s;' % table)
     rows = cur.fetchall()
     if not rows:
