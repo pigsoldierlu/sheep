@@ -31,8 +31,16 @@ def main(args):
 def upgrade_sdk(target_path, package_path):
     install = os.path.join(package_path, 'install.py')
     paths = os.environ['PATH'].split(':')
-    paths.reverse()
-    os.environ['PATH'] = ':'.join(paths)
+    execute_path = paths[0]
+    virtual_path = os.environ.get('VIRTUAL_ENV', None)
+    new_paths = []
+    for i in paths:
+        if execute_path in i:
+            continue
+        if virtual_path and virtual_path in i:
+            continue
+        new_paths.append(i)
+    os.environ['PATH'] = ':'.join(new_paths)
     os.execvpe('python', ['python', install, target_path], env=os.environ)
 
 def check_version():
