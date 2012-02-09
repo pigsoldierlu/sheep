@@ -41,13 +41,13 @@ class SHEEPApplication(Application):
         trace = tempfile.NamedTemporaryFile(delete=True)
         gevent_profiler.set_stats_output(stats.name)
         gevent_profiler.set_trace_output(trace.name)
-        def sr(status, headers):
+        def sr(status, headers, exc_info):
             new_headers = []
             for h in headers:
                 if h[0] == 'Content-Length':
                     continue
                 new_headers.append(h)
-            start_response(status, new_headers)
+            start_response(status, new_headers, exc_info)
 
         gevent_profiler.attach()
         for line in handler(environ, sr):
