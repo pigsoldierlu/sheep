@@ -4,10 +4,12 @@
 import os
 import re
 import time
+import pstats
 import logging
+import cProfile
 import tempfile
 import mimetypes
-import gevent_profiler
+from cStringIO import StringIO
 
 from gunicorn.app.base import Application
 from gunicorn import util
@@ -15,7 +17,12 @@ from gunicorn import util
 from .util import load_app_config
 
 logger = logging.getLogger()
-gevent_profiler.set_summary_output(None)
+
+PROFILE_LIMIT = 60
+PROFILE_STYLE = ('background-color: #ff9; color: #000; '
+                 'border: 2px solid #000; padding: 5px; '
+                 "font-family: Courier, 'Courier New', monospace; "
+                 "clear: both;")
 
 class Error(Exception):
     """Base-class for exceptions in this module."""
@@ -37,11 +44,10 @@ class SHEEPApplication(Application):
         return self
 
     def profile_call(self, handler, environ, start_response):
-        stats = tempfile.NamedTemporaryFile(delete=True)
-        trace = tempfile.NamedTemporaryFile(delete=True)
-        gevent_profiler.set_stats_output(stats.name)
-        gevent_profiler.set_trace_output(trace.name)
-        def sr(status, headers, exc_info):
+        stats_file = tempfile.NamedTemporaryFile(delete=True)
+        output_io = StringIO()
+        prof = cProfile.Profile()
+        def sr(status, headers, exc_info=None):
             new_headers = []
             for h in headers:
                 if h[0] == 'Content-Length':
@@ -49,18 +55,19 @@ class SHEEPApplication(Application):
                 new_headers.append(h)
             start_response(status, new_headers, exc_info)
 
-        gevent_profiler.attach()
-        for line in handler(environ, sr):
+        ret = prof.runcall(lambda h, e, r:list(h(e, r)), handler, environ, sr)
+        prof.dump_stats(stats_file.name)
+        for line in ret:
             yield line
-        gevent_profiler.detach()
-        yield '<pre>'
-        for line in open(stats.name, 'r').xreadlines():
-            yield line
-        for line in open(trace.name, 'r').xreadlines():
-            yield line
+        p = pstats.Stats(stats_file.name, stream=output_io)
+        p.sort_stats('time','calls')
+        p.print_stats(PROFILE_LIMIT)
+        p.print_callers(PROFILE_LIMIT)
+        yield '<pre id="profile_log" style="%s">' % PROFILE_STYLE
+        yield output_io.getvalue()
         yield '</pre>'
-        stats.close()
-        trace.close()
+        stats_file.close()
+        output_io.close()
 
     def __call__(self, environ, start_response):
         try:
