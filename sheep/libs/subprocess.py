@@ -23,7 +23,7 @@ class WrapperStream(object):
     def __init__(self, stream):
         self.stream = stream
         for k in dir(stream):
-            if k == 'next' or k.startswith('_'):
+            if k in ['next', 'write', 'read'] or k.startswith('_'):
                 continue
             setattr(self, k, getattr(stream, k))
 
@@ -40,6 +40,35 @@ class WrapperStream(object):
                 sys.exc_clear()
             socket.wait_read(self.fileno())
 
+    def write(self, data):
+        if data:
+            bytes_total = len(data)
+            bytes_written = 0
+            while bytes_written < bytes_total:
+                try:
+                    bytes_written += os.write(self.fileno(), data[bytes_written:])
+                except IOError, ex:
+                    if ex[0] != errno.EAGAIN:
+                        raise
+                    sys.exc_clear()
+                socket.wait_write(self.fileno())
+        self.close()
+
+    def read(self, buffer=4096):
+        chunks = []
+        while True:
+            try:
+                chunk = self.stream.read(buffer)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+            except IOError, ex:
+                if ex[0] != errno.EAGAIN:
+                    raise
+                sys.exc_clear()
+            socket.wait_read(self.fileno())
+        self.close()
+        return ''.join(chunks)
 
 class Popen(object):
     def __init__(self, *args, **kwargs):
@@ -48,6 +77,7 @@ class Popen(object):
         # make the file handles nonblocking
         if self.stdin is not None:
             fcntl.fcntl(self.stdin, fcntl.F_SETFL, os.O_NONBLOCK)
+            self.stdin = WrapperStream(self.stdin)
         if self.stdout is not None:
             fcntl.fcntl(self.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
             self.stdout = WrapperStream(self.stdout)
@@ -100,11 +130,11 @@ class Popen(object):
             stdout = None
             stderr = None
             if self.stdin:
-                self._write_pipe(self.stdin, input)
+                self.stdin.write(input)
             elif self.stdout:
-                stdout = self._read_pipe(self.stdout)
+                stdout = self.stdout.read()
             elif self.stderr:
-                stderr = self._read_pipe(self.stderr)
+                stderr = self.stderr.read()
             self.wait()
             return (stdout, stderr)
         else:
