@@ -3,7 +3,7 @@
 
 """Monkey patches for various module."""
 
-from .util import load_dev_config
+from .util import load_dev_config, load_app_config
 
 def patch_MySQLdb(approot):
     devcfg = load_dev_config(approot)
@@ -28,6 +28,19 @@ def patch_MySQLdb(approot):
     MySQLdb.connect = connect
     MySQLdb.sheep_patched = True
 
+def patch_subprocess():
+    import subprocess
+    from libs.subprocess import Popen, PIPE
+    if getattr(subprocess, 'sheep_patched', False):
+        return
+
+    subprocess.PIPE = PIPE
+    subprocess.Popen = Popen
+    setattr(subprocess, 'sheep_patched', '')
+
 
 def patch_all(approot):
+    appcfg = load_app_config(approot)
     patch_MySQLdb(approot)
+    if appcfg.get('worker', 'gevent') == 'gevent':
+        patch_subprocess()
