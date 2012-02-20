@@ -24,13 +24,12 @@ NOT_REPLACE_METHOD = ['write', 'writelines', 'next']
 class WrapperPIPE(object):
     def __init__(self, stream):
         self.stream = stream
-        for k in dir(stream):
-            if k in NOT_REPLACE_METHOD or k.startswith('_'):
-                continue
-            setattr(self, k, getattr(stream, k))
-        self.read = self._sync_read(self.read)
-        self.readline = self._sync_read(self.readline)
-        self.readlines = self._sync_read(self.readlines)
+        self.read = self._sync_read(self.stream.read)
+        self.readline = self._sync_read(self.stream.readline)
+        self.readlines = self._sync_read(self.stream.readlines)
+
+    def __getattr__(self, name):
+        return getattr(self.stream, name)
 
     def __iter__(self):
         return self
@@ -57,7 +56,7 @@ class WrapperPIPE(object):
                         raise
                     sys.exc_clear()
                 socket.wait_write(self.fileno())
-        self.close()
+            self.flush()
 
     def writelines(self, data_seq):
         for data in data_seq:
