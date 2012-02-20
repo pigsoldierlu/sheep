@@ -19,13 +19,18 @@ call = _subprocess.call
 check_call = _subprocess.check_call
 list2cmdline = _subprocess.list2cmdline
 
-class WrapperStream(object):
+NOT_REPLACE_METHOD = ['write', 'writelines', 'next']
+
+class WrapperPIPE(object):
     def __init__(self, stream):
         self.stream = stream
         for k in dir(stream):
-            if k in ['next', 'write', 'read'] or k.startswith('_'):
+            if k in NOT_REPLACE_METHOD or k.startswith('_'):
                 continue
             setattr(self, k, getattr(stream, k))
+        self.read = self._sync_read(self.read)
+        self.readline = self._sync_read(self.readline)
+        self.readlines = self._sync_read(self.readlines)
 
     def __iter__(self):
         return self
@@ -54,75 +59,42 @@ class WrapperStream(object):
                 socket.wait_write(self.fileno())
         self.close()
 
-    def read(self, buffer=4096):
-        chunks = []
-        while True:
-            try:
-                chunk = self.stream.read(buffer)
-                if not chunk:
-                    break
-                chunks.append(chunk)
-            except IOError, ex:
-                if ex[0] != errno.EAGAIN:
-                    raise
-                sys.exc_clear()
-            socket.wait_read(self.fileno())
-        self.close()
-        return ''.join(chunks)
+    def writelines(self, data_seq):
+        for data in data_seq:
+            self.write(data)
+        self.flush()
+
+    def _sync_read(self, f):
+        def _(size=-1):
+            while True:
+                try:
+                    data = f(size)
+                    if not data:
+                        break
+                    return data
+                except IOError, ex:
+                    if ex[0] != errno.EAGAIN:
+                        raise
+                    sys.exc_clear()
+                socket.wait_read(self.fileno())
+        return _
 
 class Popen(object):
     def __init__(self, *args, **kwargs):
         # delegate to an actual Popen object
         self.__p = POPEN(*args, **kwargs)
         # make the file handles nonblocking
-        if self.stdin is not None:
-            fcntl.fcntl(self.stdin, fcntl.F_SETFL, os.O_NONBLOCK)
-            self.stdin = WrapperStream(self.stdin)
-        if self.stdout is not None:
-            fcntl.fcntl(self.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
-            self.stdout = WrapperStream(self.stdout)
-        if self.stderr is not None:
-            self.stderr = WrapperStream(self.stderr)
-            fcntl.fcntl(self.stderr, fcntl.F_SETFL, os.O_NONBLOCK)
-    
+        for pipe in ['stdin', 'stdout', 'stderr']:
+            if not getattr(self, pipe, None):
+                continue
+            p = getattr(self, pipe)
+            fcntl.fcntl(p, fcntl.F_SETFL, os.O_NONBLOCK)
+            setattr(self, pipe, WrapperPIPE(p))
+
     def __getattr__(self, name):
         # delegate attribute lookup to the real Popen object
         return getattr(self.__p, name)
-    
-    def _write_pipe(self, f, input):
-        # writes the given input to f without blocking
-        if input:
-            bytes_total = len(input)
-            bytes_written = 0
-            while bytes_written < bytes_total:
-                try:
-                    # f.write() doesn't return anything, so use os.write.
-                    bytes_written += os.write(f.fileno(), input[bytes_written:])
-                except IOError, ex:
-                    if ex[0] != errno.EAGAIN:
-                        raise
-                    sys.exc_clear()
-                socket.wait_write(f.fileno())
-        f.close()
-    
-    def _read_pipe(self, f):
-        # reads output from f without blocking
-        # returns output
-        chunks = []
-        while True:
-            try:
-                chunk = f.read(4096)
-                if not chunk:
-                    break
-                chunks.append(chunk)
-            except IOError, ex:
-                if ex[0] != errno.EAGAIN:
-                    raise
-                sys.exc_clear()
-            socket.wait_read(f.fileno())
-        f.close()
-        return ''.join(chunks)
-    
+
     def communicate(self, input=None):
         # Optimization: If we are only using one pipe, or no pipe at
         # all, using select() is unnecessary.
