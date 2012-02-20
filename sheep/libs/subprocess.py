@@ -19,8 +19,6 @@ call = _subprocess.call
 check_call = _subprocess.check_call
 list2cmdline = _subprocess.list2cmdline
 
-NOT_REPLACE_METHOD = ['write', 'writelines', 'next']
-
 class WrapperPIPE(object):
     def __init__(self, stream):
         self.stream = stream
@@ -56,7 +54,7 @@ class WrapperPIPE(object):
                         raise
                     sys.exc_clear()
                 socket.wait_write(self.fileno())
-            self.flush()
+        self.flush()
 
     def writelines(self, data_seq):
         for data in data_seq:
@@ -65,17 +63,19 @@ class WrapperPIPE(object):
 
     def _sync_read(self, f):
         def _(size=-1):
+            chunks = ''
             while True:
                 try:
                     data = f(size)
                     if not data:
                         break
-                    return data
+                    chunks += data
                 except IOError, ex:
                     if ex[0] != errno.EAGAIN:
                         raise
                     sys.exc_clear()
                 socket.wait_read(self.fileno())
+            return chunks
         return _
 
 class Popen(object):
