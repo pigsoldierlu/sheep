@@ -57,7 +57,13 @@ class Reloader(threading.Thread):
         while True:
             #start = time.time()
             for _file, mtime in modify_times.iteritems():
-                if mtime != os.stat(_file).st_mtime:
+                if not os.path.exists(_file):
+                    # file deleted
+                    print "%s deleted, reload workers..." % _file
+                    os.kill(self.server.pid, signal.SIGHUP)
+                    del modify_times[_file]
+
+                elif mtime != os.stat(_file).st_mtime:
                     print '%s modified, reload workers...' % _file
                     os.kill(self.server.pid, signal.SIGHUP)
                     modify_times[_file] = os.stat(_file).st_mtime
