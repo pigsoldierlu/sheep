@@ -93,7 +93,7 @@ def _main(args):
     ret = deploy_to_server(data, args.server)
     if ret == 'Failed':
         logger.warning("It seems that the deploy failed.  Try again later.  "
-                       "If the failure persists, contact DAE admin please.")
+                       "If the failure persists, contact admin please.")
         sys.exit(1)
 
     ret = mirror_statics(root_path, args.server)

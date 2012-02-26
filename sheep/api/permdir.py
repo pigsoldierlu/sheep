@@ -13,5 +13,5 @@ __all__ = ['permdir']
 import os
 from sheep.util import find_app_root
 
-approot = os.environ.get('DAE_APPROOT') or find_app_root(raises=False) or ''
+approot = os.environ.get('SHEEP_APPROOT') or find_app_root(raises=False) or ''
 permdir = os.path.join(approot, 'permdir')

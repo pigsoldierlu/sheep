@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+import os
 import re
 import time
 import base64
@@ -47,9 +48,9 @@ class FolderItem(object):
         self.number = number
 
 class UpYun(object):
-    def __init__(self, bucket, username, password, appname):
-        assert appname
-        self.appname = '/' + appname
+    def __init__(self, bucket, username, password):
+        self.appname = '/' + approot = os.environ.get('SHEEP_APPNAME', '')
+        assert self.appname and self.appname != '/'
         self.thehost = 'v0.api.upyun.com'
         self.username = username
         self.password = password

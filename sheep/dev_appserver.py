@@ -39,6 +39,8 @@ def run_server(root_path, port=8080, pidfile=None, daemon=False):
     cmd.append(root_path)
     os.environ['SHEEP_APPROOT'] = root_path
     os.environ['SHEEP_RELOAD_MONITOR_DIRS'] = root_path
+    os.environ['SHEEP_APPNAME'] = appconf['application']
+
     if 'PYTHONPATH' not in os.environ:
         os.environ['PYTHONPATH'] = root_path
     else:
