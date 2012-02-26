@@ -47,7 +47,9 @@ class FolderItem(object):
         self.number = number
 
 class UpYun(object):
-    def __init__(self, bucket, username, password):
+    def __init__(self, bucket, username, password, appname):
+        assert appname
+        self.appname = '/' + appname
         self.thehost = 'v0.api.upyun.com'
         self.username = username
         self.password = password
@@ -216,7 +218,7 @@ class UpYun(object):
         final_headers = merge_meta(headers, metadata)
 
         if self.upAuth:
-            self._add_upyun_auth_header(final_headers,method,path)
+            self._add_upyun_auth_header(final_headers,method,self.appname + path)
         else :
             self._basicAuth(final_headers,self.username,self.password) 
 
