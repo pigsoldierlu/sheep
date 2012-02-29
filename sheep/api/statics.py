@@ -4,7 +4,18 @@
 """
 static_files url replace
 """
-
 __all__ = ['static_files', 'public_files', 'upload_files']
 
-static_files = public_files = upload_files = lambda path: path
+import os
+from sheep.util import load_app_config
+
+approot = os.environ.get('SHEEP_APPROOT') or find_app_root(raises=False) or ''
+appconf = load_app_config(approot)
+
+appname = appconf['application']
+upload_prefix = appconf['upload_prefix']
+public_prefix = appconf['public_prefix']
+
+static_files = lambda path: path
+upload_files = lambda path: os.path.join(upload_prefix, appname) + path
+public_files = lambda path: public_prefix + path

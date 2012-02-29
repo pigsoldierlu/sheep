@@ -149,7 +149,7 @@ class UpYun(object):
     #data 要上传的文件数据
     #path 远程文件的位置
     #[auto] 是否自动创建父级目录（最多10级）
-    def writeFile(self, path, data, auto = False, headers={}, metadata={}):
+    def writeFile(self, path, data, auto = True, headers={}, metadata={}):
         if auto == True :
             headers['mkdir'] = 'true'
         if type(data) != file :
