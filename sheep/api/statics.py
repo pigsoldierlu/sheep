@@ -17,9 +17,5 @@ upload_prefix = appconf['upload_prefix']
 public_prefix = appconf['public_prefix']
 
 static_files = lambda path: path
-
-def upload_files(path):
-    return os.path.join(upload_prefix, appname) + path
-
-def public_files(path):
-    return public_prefix + path
+upload_files = lambda path: os.path.join(upload_prefix, appname) + path
+public_files = lambda path: public_prefix + path
