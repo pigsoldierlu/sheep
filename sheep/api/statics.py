@@ -13,8 +13,8 @@ approot = os.environ.get('SHEEP_APPROOT') or find_app_root(raises=False) or ''
 appconf = load_app_config(approot)
 
 appname = appconf['application']
-upload_prefix = appconf['upload_prefix']
-public_prefix = appconf['public_prefix']
+upload_prefix = appconf.get('upload_prefix', '')
+public_prefix = appconf.get('public_prefix', '')
 
 static_files = lambda path: path
 upload_files = lambda path: os.path.join(upload_prefix, appname) + path
