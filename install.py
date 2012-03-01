@@ -51,7 +51,10 @@ def install_sheep_sdk(dest_dir, revision=None):
     pkgdir = os.path.abspath(os.path.join(src_dir, '3rdparty'))
 
     check_call(['python', os.path.join(pkgdir, 'virtualenv.py'),
-                '--no-site-packages', '--distribute', dest_dir])
+                '--no-site-packages', '--distribute',
+                '--extra-search-dir', pkgdir,
+                '--never-download',
+                dest_dir])
 
     bin_dir = os.path.join(dest_dir, 'bin')
     pip_path = os.path.join(bin_dir, 'pip')

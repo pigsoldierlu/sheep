@@ -161,6 +161,16 @@ def get_vcs_url(approot):
         p = Popen(['hg', '-R', approot, 'identify', '-i'], stdout=PIPE)
         revision = p.communicate()[0].strip().rstrip('+')
 
+    elif vcs == 'git':
+        parser = ConfigParser.ConfigParser()
+        content = open(os.path.join(approot, '.git/config')).read()
+        config = StringIO('\n'.join(line.strip() for line in content.split('\n')))
+        parser.readfp(config)
+        remote_url = parser.get('remote "origin"', 'url')
+
+        p = Popen(['git', 'show', '--summary'], stdout=PIPE, cwd=approot)
+        revision = p.communicate()[0].split('\n')[0].replace('commit ', '')
+
     elif vcs == 'svn':
         log_check_call(['svn', 'up'], log=logging.debug)
         env = os.environ.copy()

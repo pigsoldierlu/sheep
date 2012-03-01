@@ -36,26 +36,28 @@ class SHEEPTemplate(MyTemplate):
         repo_url = vars['repo_url']
         if command.verbose:
             print "Checking %s" % repo_url
-        
+
         if vars['repo_type'] == 'svn':
             if call(['svn', 'ls', repo_url]):
                 if command.verbose:
                     print "%s not exists. Creating" % repo_url
                 check_call(['svn', 'mkdir', repo_url, '-m',
                             "create new project (via sheep create)"])
-            if command.verbose:
-                print "Checking out %s" % repo_url
             check_call(['svn', 'co', repo_url, output_dir])
         elif vars['repo_type'] == 'hg':
             try:
-                if command.verbose:
-                    print "Checking out %s" % repo_url
                 check_call(['hg', 'clone', repo_url, output_dir])
             except:
                 print "You need create repo first."
                 sys.exit(0)
+        elif vars['repo_type'] == 'git':
+            try:
+                check_call(['git', 'clone', repo_url, output_dir])
+            except:
+                print "You need create repo first."
+                sys.exit(0)
         else:
-            print "You need choose hg or svn as project repo."
+            print "You need choose hg or svn or git as project repo."
             sys.exit(0)
 
     def post(self, command, output_dir, vars):
@@ -74,22 +76,25 @@ class SHEEPTemplate(MyTemplate):
         if command.verbose:
             print "Setting svn:ignore"
 
-        if os.path.exists(os.path.join(output_dir, '.svn')):
+        if vars['repo_type'] == 'svn':
             check_call(['svn', 'propset', 'svn:ignore', 'venv\npermdir',
                         output_dir])
-            # paster add all template-generated files to vcs, but we do not
-            # want to checkin permdir
             check_call(['svn', 'revert', os.path.join(output_dir, 'permdir')])
-        elif os.path.exists(os.path.join(output_dir, '.hg')):
-            ignore_file = open(os.path.join(output_dir, '.hgignore'), 'w+')
-            content = "syntax: glob\n\nvenv\npermdir\n*.py[co]"
-            ignore_file.write(content)
-            ignore_file.close()
+        elif vars['repo_type'] == hg:
+            with open(os.path.join(output_dir, '.hgignore'), 'a') as ignore_file:
+                content = "\nsyntax: glob\n\nvenv\npermdir"
+                ignore_file.write(content)
             check_call(['hg', 'add', output_dir])
-            hgrc = open(os.path.join(output_dir, '.hg', 'hgrc'), 'a')
-            content = "[ui]\nusername = %s\n" % vars['username']
-            hgrc.write(content)
-            hgrc.close()
+            with open(os.path.join(output_dir, '.hg', 'hgrc'), 'a') as hgrc:
+                content = "\n[ui]\nusername = %s\n" % vars['username']
+                hgrc.write(content)
+        elif vars['repo_type'] == 'git':
+            git_dir = os.path.join(output_dir, '.git')
+            with open(os.path.join(output_dir, '.gitignore'), 'a') as ignore_file:
+                content = "venv\npermdir"
+                ignore_file.write(content)
+            check_call(['git', '--git-dir', git_dir, '--work-tree', output_dir, 'add', '-A', '.'])
+            check_call(['git', '--git-dir', git_dir, '--work-tree', output_dir, 'config', 'user.name', vars['username']])
 
         if command.verbose:
             print "Application %s created in %s." % (vars['appname'], output_dir)

@@ -11,7 +11,7 @@ from .syncdb import sync_database
 from .upgrade import check_version
 from .statics import mirror_statics
 from .util import load_app_config, find_app_root, activate_virtualenv, \
-        log_check_call, log_call, get_vcs_url
+        log_check_call, log_call, get_vcs_url, get_vcs
 
 logger = logging.getLogger(__name__)
 
@@ -118,20 +118,44 @@ def deploy_to_server(data, server):
     else:
         return 'Succeeded'
 
-def scm_type(root_path):
-    '''Get type of SCM(Software Configuration Management)'''
-
-    if os.path.exists(os.path.join(root_path, '.hg')):
-        return 'hg'
-    elif os.path.exists(os.path.join(root_path, '.svn')):
-        return 'svn'
-
 def push_modifications(root_path):
-    scm = scm_type(root_path)
+    scm = get_vcs(root_path)
     if scm == 'hg':
         push_hg_modifications(root_path)
     elif scm == 'svn':
         push_svn_modifications(root_path)
+    elif scm == 'git':
+        push_git_modifications(root_path)
+
+def push_git_modifications(root_path):
+    call(['git', 'pull', '--update'], cwd=root_path)
+    call(['git', 'add', 'pip-req.txt'], cwd=root_path)
+    p = Popen('git status --porcelain --untracked-file=no'.split(),
+            stdout=PIPE, cwd=root_path)
+    git_status = defaultdict(list)
+    modify = p.stdout.read()
+    for line in modify.split('\n'):
+        if not line:
+            continue
+        status, filename = line.split()
+        git_status[status].append(filename)
+
+    if git_status and git_status.values() != [['pip-req.txt']]:
+        logger.warning("You have local modification, listed as followed:")
+        check_call('git status --porcelain'.split(),
+                cwd=root_path, log=logger.warning)
+        answer = raw_input("Commit them? (y/n) ")
+        if answer != 'y':
+            sys.exit(1)
+        else:
+            check_call(['git', 'commit', '-a'], cwd=root_path,
+                    need_input=True)
+
+    elif git_status.values() == [['pip-req.txt']]:
+        check_call(['git', 'commit', '-m',
+                "update pip-req.txt by deploy"], cwd=root_path)
+
+    check_call(['git', 'push'], cwd=root_path, need_input=True)
 
 def push_hg_modifications(root_path):
     call(['hg', '-R', root_path, 'pull', '--update'])

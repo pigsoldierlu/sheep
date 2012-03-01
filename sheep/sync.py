@@ -27,6 +27,8 @@ def main(args):
         check_call(['hg', '-R', approot,  'pull', '-u'])
     elif vcs == 'svn':
         check_call(['svn', 'up', approot])
+    elif vcs == 'git':
+        check_call(['git', 'pull', approot])
     else:
         logger.error("%s is not under version control", approot)
         return 1
@@ -48,9 +50,10 @@ def main(args):
         logger.info('Installing requirements...')
         check_call([os.path.join(venvdir, 'bin', 'pip'), 'install',
                     '-r', os.path.join(approot, 'pip-req.txt'),
+                    '--save-download', os.path.join(approot, 'pip-download'),
                     '--no-index',
-                    '--fallback-index-url', 'http://pypi.python.org/simple/',
                     '--find-links', 'file://%s/pip-download/' % approot,
+                    '--fallback-index-url', 'http://pypi.python.org/simple/',
                    ])
 
     if os.path.exists(os.path.join(approot, 'setup.py')):
