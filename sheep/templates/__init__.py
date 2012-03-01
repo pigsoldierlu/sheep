@@ -80,7 +80,7 @@ class SHEEPTemplate(MyTemplate):
             check_call(['svn', 'propset', 'svn:ignore', 'venv\npermdir',
                         output_dir])
             check_call(['svn', 'revert', os.path.join(output_dir, 'permdir')])
-        elif vars['repo_type'] == hg:
+        elif vars['repo_type'] == 'hg':
             with open(os.path.join(output_dir, '.hgignore'), 'a') as ignore_file:
                 content = "\nsyntax: glob\n\nvenv\npermdir"
                 ignore_file.write(content)
