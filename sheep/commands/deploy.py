@@ -10,7 +10,7 @@ import logging
 from .syncdb import sync_database
 from .upgrade import check_version
 from .statics import mirror_statics
-from .util import load_app_config, find_app_root, activate_virtualenv, \
+from sheep.util import load_app_config, find_app_root, activate_virtualenv, \
         log_check_call, log_call, get_vcs_url, get_vcs
 
 logger = logging.getLogger(__name__)

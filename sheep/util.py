@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
-import os, sys
+import os
 import re
-from subprocess import Popen, PIPE, STDOUT, CalledProcessError, call
+import sys
 import logging
 import tempfile
+import ConfigParser
+from subprocess import Popen, PIPE, STDOUT, CalledProcessError, call
 
 import yaml
 

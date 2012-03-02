@@ -5,7 +5,7 @@ import os
 from subprocess import call, Popen, PIPE
 from glob import glob
 
-from .util import find_app_root, get_venvdir, dump_requirements, \
+from sheep.util import find_app_root, get_venvdir, dump_requirements, \
         is_pip_compatible
 
 def populate_argument_parser(parser):

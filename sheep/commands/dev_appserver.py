@@ -3,10 +3,10 @@
 
 import os, sys
 
-from .util import load_app_config, activate_virtualenv, find_app_root, \
+from sheep.util import load_app_config, activate_virtualenv, find_app_root, \
         load_dev_config
-from .appserver import SHEEPApplication
-from .monkey import patch_all
+from sheep.app import SHEEPApplication
+from sheep.monkey import patch_all
 
 def populate_argument_parser(parser):
     parser.add_argument('root_path', metavar="<app root>", nargs='?',

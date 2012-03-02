@@ -4,7 +4,7 @@
 import os
 from subprocess import call
 
-from .util import find_app_root, get_venvdir, dump_requirements
+from sheep.util import find_app_root, get_venvdir, dump_requirements
 
 def populate_argument_parser(parser):
     parser.add_argument('-h', '--help', action='store_true',

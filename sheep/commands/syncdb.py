@@ -6,7 +6,7 @@ import urllib2
 import MySQLdb
 import logging
 
-from .util import find_app_root, load_dev_config, load_app_config
+from sheep.util import find_app_root, load_dev_config, load_app_config
 
 DEFAULT_SERVER = 'http://deploy.xiaom.co'
 

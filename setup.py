@@ -36,7 +36,7 @@ setup(name='sheep',
       install_requires=install_requires,
       entry_points="""
       [console_scripts]
-      sheep = sheep:main
+      sheep = sheep.commands:main
       sheep-gunicorn = sheep.dev_appserver:gunicorn_run
 
       [paste.paster_create_template]

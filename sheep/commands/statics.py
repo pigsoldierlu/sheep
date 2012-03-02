@@ -6,7 +6,7 @@ import json
 import urllib2
 import logging
 
-from .util import find_app_root, load_app_config
+from sheep.util import find_app_root, load_app_config
 
 DEFAULT_SERVER = 'http://deploy.xiaom.co'
 

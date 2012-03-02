@@ -4,7 +4,7 @@
 import sys
 from threading import Thread
 from websocket import create_connection
-from .util import find_app_root, load_app_config
+from sheep.util import find_app_root, load_app_config
 
 def populate_argument_parser(parser):
     parser.add_argument('root_path', metavar='<app root>', nargs='?',

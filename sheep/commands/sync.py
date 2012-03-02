@@ -5,8 +5,8 @@ import os
 import logging
 from subprocess import check_call
 
-from .consts import VENV_DIR_KEY, DEFAULT_VENV_DIR
-from .util import find_app_root, load_app_config, get_vcs, is_pip_compatible
+from sheep.consts import VENV_DIR_KEY, DEFAULT_VENV_DIR
+from sheep.util import find_app_root, load_app_config, get_vcs, is_pip_compatible
 
 logger = logging.getLogger(__name__)
 
