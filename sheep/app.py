@@ -14,7 +14,7 @@ from cStringIO import StringIO
 from gunicorn.app.base import Application
 from gunicorn import util
 
-from .util import load_app_config
+from .util import load_app_config, set_environ
 
 logger = logging.getLogger()
 
@@ -30,7 +30,6 @@ class Error(Exception):
 class InvalidAppConfigError(Error):
     """This supplied application configuration file is invalid."""
 
-
 class SHEEPApplication(Application):
     def init(self, parser, opts, args):
         if len(args) != 1:
@@ -38,10 +37,14 @@ class SHEEPApplication(Application):
 
         self.root_path = args[0]
         self.appconf = load_app_config(self.root_path)
-        self.handlers = None
 
     def load(self):
-        return self
+        return WSGIApplication(self.appconf)
+
+class WSGIApplication(object):
+    def __init__(self, appconf):
+        self.appconf = appconf
+        self.handlers = None
 
     def profile_call(self, handler, environ, start_response):
         stats_file = tempfile.NamedTemporaryFile(delete=True)
@@ -71,6 +74,7 @@ class SHEEPApplication(Application):
 
     def __call__(self, environ, start_response):
         try:
+            set_environ(environ)
             path_info = environ['PATH_INFO'] or '/'
             environ['sheep.config'] = self.appconf
             if self.handlers is None:
@@ -101,6 +105,7 @@ def handler_factory(config):
     mapping = [('wsgi_app', WSGIAppHandler),
                ('static_files', StaticFilesHandler),
                ('paste', PasteHandler),
+               ('callable', CallableAppHandler),
               ]
     for handler_type, cls in mapping:
         if handler_type in config:
@@ -141,6 +146,10 @@ class PrefixMatchMixIn(object):
         if regex.startswith('^') or regex.endswith('$') or '(' in regex:
             raise InvalidAppConfigError('regex starts with "^" or ends with "$" or "(" in it')
         return regex + '.*'
+
+class CallableAppHandler(BaseHandler, WholeMatchMixIn):
+    def make_app(self, config):
+        return config['callable']
 
 class WSGIAppHandler(BaseHandler, WholeMatchMixIn):
     def make_app(self, config):

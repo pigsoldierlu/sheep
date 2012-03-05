@@ -10,6 +10,13 @@ def patch_MySQLdb(approot):
     if 'mysql' not in devcfg:
         return
 
+    try:
+        from pymysql import install_as_MySQLdb
+    except ImportError:
+        pass
+    else:
+        install_as_MySQLdb()
+
     import MySQLdb
     if getattr(MySQLdb, 'sheep_patched', False):
         return

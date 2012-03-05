@@ -1,36 +1,15 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
-""" Gunicorn configs and hooks for auto-reloading and request timing
-"""
-
-import time
 import os
-from os.path import join
+import time
 import signal
 import threading
 
 debug = True
 loglevel = 'debug'
-#workers = 2
-#keepalive = 4
-
-TIMES = {}
-def pre_request(worker, req):
-    """Gunicorn pre_request hook
-    """
-
-    TIMES[worker.pid] = time.time()
-
-def post_request(worker, req, environ = None):
-    """Gunicorn post_request hook
-    """
-
-    host = dict(req.headers)['HOST']
-    cost = time.time() - TIMES[worker.pid]
-    url = 'http://%s%s' % (host, req.path)
-    print '[%fs] - %s %s' % (cost, req.method, url)
-
+accesslog = '-'
+access_log_format = """%(t)s "%(r)s" %(s)s %(b)s %(HTTP_X_SHEEP_REQUEST_TIME_IN_MS)sms"""
 
 class Reloader(threading.Thread):
     """Auto reloader for auto-reloading gunicorn workers when .py file modified
@@ -49,7 +28,7 @@ class Reloader(threading.Thread):
             for root, dirs, files in os.walk(monitor_dir):
                 if '/.svn' in root:
                     continue
-                for _file in (join(root, name) for name in files):
+                for _file in (os.path.join(root, name) for name in files):
                     if _file.endswith('.py') or _file.endswith('.ptl') \
                             or _file.endswith('.yaml'):
                         modify_times[_file] = os.stat(_file).st_mtime
@@ -73,4 +52,5 @@ class Reloader(threading.Thread):
 def when_ready(server):
     """Gunicorn server ready hook
     """
+
     Reloader(server).start()

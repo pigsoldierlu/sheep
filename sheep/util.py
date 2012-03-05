@@ -6,6 +6,7 @@ import re
 import sys
 import logging
 import tempfile
+import threading
 import ConfigParser
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError, call
 
@@ -207,3 +208,39 @@ def is_pip_compatible(pip_path):
     """Check if `pip --save-download` is supported"""
     stdout, stderr = Popen([pip_path, 'install', '--help'], stdout=PIPE).communicate()
     return '--save-download' in stdout
+
+def init_sdk_environ(approot):
+    appconf = load_app_config(root_path)
+
+    os.environ['SHEEP_APPROOT'] = approot
+    os.environ['SHEEP_RELOAD_MONITOR_DIRS'] = approot
+    os.environ['SHEEP_ENV'] = 'SDK'
+    os.environ['SHEEP_APPNAME'] = appconf['application']
+
+    if 'PYTHONPATH' not in os.environ:
+        os.environ['PYTHONPATH'] = approot
+    else:
+        os.environ['PYTHONPATH'] = approot + ':' + os.environ['PYTHONPATH']
+    sys.path.insert(0, approot)
+
+    activate_virtualenv(approot)
+
+    logging.getLogger('gunicorn').propagate = False
+
+    from sheep.monkey import patch_all
+    patch_all(approot)
+    os.chdir(approot)
+
+local = None
+def get_local():
+    global local
+    if local is None:
+        local = threading.local()
+    return local
+
+def set_environ(environ):
+    get_local().environ = environ
+
+def get_environ():
+    return get_local().environ
+

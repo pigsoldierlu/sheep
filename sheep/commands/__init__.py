@@ -37,6 +37,9 @@ def main():
         ('freeze', 'freeze', "Dump requirements in pip-req.txt"),
     ]
     for command, module_name, help_text in subcommands:
+        module = __import__('sheep.commands.'+module_name, globals(), locals(),
+                            ['populate_argument_parser', 'main'])
+
         if command in ('install', 'uninstall'):
             subparser = subparsers.add_parser(command, help=help_text,
                                               add_help=False)
@@ -44,8 +47,7 @@ def main():
             subparser = subparsers.add_parser(command, help=help_text)
             subparser.add_argument('-v', '--verbose', action='store_true',
                                     help="enable additional output")
-        module = __import__('sheep.commands.'+module_name, globals(), locals(),
-                            ['populate_argument_parser', 'main'])
+
         module.populate_argument_parser(subparser)
         subparser.set_defaults(func=module.main)
 

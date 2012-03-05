@@ -3,10 +3,10 @@
 
 import os, sys
 
-from sheep.util import load_app_config, activate_virtualenv, find_app_root, \
-        load_dev_config
-from sheep.app import SHEEPApplication
 from sheep.monkey import patch_all
+from sheep.gworkers.mix import MixedGunicornApplication
+from sheep.util import load_app_config, activate_virtualenv, find_app_root, \
+        load_dev_config, init_sdk_environ
 
 def populate_argument_parser(parser):
     parser.add_argument('root_path', metavar="<app root>", nargs='?',
@@ -23,51 +23,26 @@ def main(args):
     return run_server(root_path, args.port, args.pidfile, args.daemon)
 
 def run_server(root_path, port=8080, pidfile=None, daemon=False):
+    init_sdk_environ(root_path)
     appconf = load_app_config(root_path)
-    cmd = ['sheep-gunicorn', '-b', ':{0}'.format(port)]
+
+    sys.argv = ['sheep serve', '-b', '0.0.0.0:{0}'.format(port)]
 
     if pidfile:
-        cmd += ['-p', pidfile]
+        sys.argv += ['-p', pidfile]
 
     if daemon:
-        cmd += ['-D']
+        sys.argv += ['-D']
 
-    cmd += ['-c', os.path.join(os.path.dirname(__file__),
+    sys.argv += ['-c', os.path.join(os.path.dirname(__file__),
                                'dev_appserver_config.py'),
-            '-k', appconf.get('worker', 'gevent'),
+            '-k', appconf.get('worker', 'sheep.gworkers.ggevent.GeventWorker'),
            ]
-    cmd.append(root_path)
-    os.environ['SHEEP_APPROOT'] = root_path
-    os.environ['SHEEP_RELOAD_MONITOR_DIRS'] = root_path
-    os.environ['SHEEP_APPNAME'] = appconf['application']
+    sys.argv.append(root_path)
 
-    if 'PYTHONPATH' not in os.environ:
-        os.environ['PYTHONPATH'] = root_path
-    else:
-        os.environ['PYTHONPATH'] = root_path + ':' + os.environ['PYTHONPATH']
-
-    os.chdir(root_path)
-
-    # run gunicorn_run() on exec'ed process
-    os.execvp('sheep-gunicorn', cmd)
-
-def gunicorn_run():
-    try:
-        from pymysql import install_as_MySQLdb
-    except ImportError:
-        pass
-    else:
-        install_as_MySQLdb()
-
-    app = SHEEPApplication()
+    app = MixedGunicornApplication()
     dev_handler = {'url': '/_sheep/.*', 'wsgi_app': 'sheep.dev:dispatcher'}
     app.appconf['handlers'].insert(0, dev_handler)
-    sys.path.insert(0, app.root_path)
-    activate_virtualenv(app.root_path)
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('gunicorn').propagate = False
-    patch_all(app.root_path)
-    return app.run()
 
+    return app.run()
 
