@@ -33,7 +33,7 @@ class Reloader(threading.Thread):
                             or _file.endswith('.yaml'):
                         modify_times[_file] = os.stat(_file).st_mtime
 
-        while True:
+        while os.getpid() == self.server.pid::
             #start = time.time()
             for _file, mtime in modify_times.iteritems():
                 if not os.path.exists(_file):

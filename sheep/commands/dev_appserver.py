@@ -40,9 +40,9 @@ def run_server(root_path, port=8080, pidfile=None, daemon=False):
            ]
     sys.argv.append(root_path)
 
-    app = MixedGunicornApplication()
-    dev_handler = {'url': '/_sheep/.*', 'wsgi_app': 'sheep.dev:dispatcher'}
-    app.appconf['handlers'].insert(0, dev_handler)
-
+    def add_handler(app):
+        dev_handler = {'url': '/_sheep/.*', 'wsgi_app': 'sheep.dev:dispatcher'}
+        app.appconf['handlers'].insert(0, dev_handler)
+    app = MixedGunicornApplication(on_init=add_handler)
     return app.run()
 
