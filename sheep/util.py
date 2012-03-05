@@ -210,7 +210,7 @@ def is_pip_compatible(pip_path):
     return '--save-download' in stdout
 
 def init_sdk_environ(approot):
-    appconf = load_app_config(root_path)
+    appconf = load_app_config(approot)
 
     os.environ['SHEEP_APPROOT'] = approot
     os.environ['SHEEP_RELOAD_MONITOR_DIRS'] = approot
