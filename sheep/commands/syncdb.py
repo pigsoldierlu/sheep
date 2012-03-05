@@ -3,8 +3,9 @@
 
 import json
 import urllib2
-import MySQLdb
 import logging
+
+import pymysql as MySQLdb
 
 from sheep.util import find_app_root, load_dev_config, load_app_config
 

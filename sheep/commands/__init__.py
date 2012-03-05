@@ -10,13 +10,6 @@ def main():
     script_path = os.path.realpath(sys.argv[0])
     os.environ['PATH'] = os.path.dirname(script_path) + ':' + os.environ['PATH']
 
-    try:
-        from pymysql import install_as_MySQLdb
-    except ImportError:
-        pass
-    else:
-        install_as_MySQLdb()
-
     from argparse import ArgumentParser
     parser = ArgumentParser()
     subparsers = parser.add_subparsers(title="commands",
