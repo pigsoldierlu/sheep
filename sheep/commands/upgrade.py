@@ -26,10 +26,10 @@ def main(args):
 
     package_path = os.path.dirname(sdk_path)
     target_path = os.path.dirname(package_path)
-    upgrade_sdk(target_path, package_path)
+    upgrade_sdk(target_path)
 
-def upgrade_sdk(target_path, package_path):
-    install = os.path.join(package_path, 'install.py')
+def upgrade_sdk(target_path):
+    install = os.path.join(target_path, 'install.py')
     paths = os.environ['PATH'].split(':')
     execute_path = paths[0]
     virtual_path = os.environ.get('VIRTUAL_ENV', None)
