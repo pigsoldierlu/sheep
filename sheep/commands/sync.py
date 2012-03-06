@@ -28,7 +28,8 @@ def main(args):
     elif vcs == 'svn':
         check_call(['svn', 'up', approot])
     elif vcs == 'git':
-        check_call(['git', 'pull', approot])
+        check_call(['git', '--git-dir', os.path.join(approot, '.git'),
+                    '--work-tree', approot, 'pull'])
     else:
         logger.error("%s is not under version control", approot)
         return 1
@@ -40,6 +41,23 @@ def main(args):
         logger.info('Creating virtualenv at %s...', venvdir)
         check_call(['virtualenv', '--no-site-packages', venvdir,
                     '--prompt', '(%s)' % appname])
+
+    sitecustomize_path = os.path.join(venvdir, 'lib',
+                        'python'+sys.version[:3], 'sitecustomize.py')
+    if not os.path.exists(sitecustomize_path):
+        logger.info("Create sitecustomize.py...")
+        with open(sitecustomize_path, 'w') as f:
+            f.write("""\
+import os, sys, site
+sdk_path = os.environ.get('SHEEP_SDK_PATH')
+if sdk_path:
+    sdk_site_dir = os.path.join(sdk_path, 'lib', 'python'+sys.version[:3],
+                    'site-packages')
+    site.addsitedir(sdk_site_dir)
+    if os.environ.get('SHEEP_APPROOT'):
+        from sheep.util import init_sdk_environ
+        init_sdk_environ(os.environ['SHEEP_APPROOT'])
+""")
 
     if not is_pip_compatible(os.path.join(venvdir, 'bin', 'pip')):
         logger.info('Installing patched pip...')
@@ -58,7 +76,8 @@ def main(args):
 
     if os.path.exists(os.path.join(approot, 'setup.py')):
         logger.info("Running python setup.py develop")
-        check_call([os.path.join(venvdir, 'bin', 'python'), 'setup.py',
+        check_call([os.path.join(venvdir, 'bin', 'python'),
+                    os.path.join(approot, 'setup.py'),
                     'develop'])
 
     logger.info('Sync success...')

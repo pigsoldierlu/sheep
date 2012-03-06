@@ -9,6 +9,7 @@ from subprocess import check_call, call
 from paste.script.templates import Template, var, NoDefault
 from mako.template import Template as MakoTemplate
 
+import sheep.commands.sync
 from ..util import validate_appname
 from ..consts import DEFAULT_VENV_DIR
 
@@ -95,6 +96,14 @@ class SHEEPTemplate(MyTemplate):
                 ignore_file.write(content)
             check_call(['git', '--git-dir', git_dir, '--work-tree', output_dir, 'add', '-A', '.'])
             check_call(['git', '--git-dir', git_dir, '--work-tree', output_dir, 'config', 'user.name', vars['username']])
+
+        class Dummy(object):
+            pass
+        args = Dummy()
+        args.root_path = output_dir
+        error = sheep.commands.sync.main(args)
+        if error:
+            print "Failed to run sheep sync"
 
         if command.verbose:
             print "Application %s created in %s." % (vars['appname'], output_dir)

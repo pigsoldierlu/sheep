@@ -51,5 +51,4 @@ def patch_subprocess():
 def patch_all(approot):
     appcfg = load_app_config(approot)
     patch_MySQLdb(approot)
-    if appcfg.get('worker', 'gevent') == 'gevent':
-        patch_subprocess()
+

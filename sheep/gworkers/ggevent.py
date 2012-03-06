@@ -47,6 +47,8 @@ class GeventWorker(AsyncWorker):
         from gevent import monkey
         monkey.noisy = False
         monkey.patch_all()
+        from sheep.monkey import patch_subprocess
+        patch_subprocess()
 
     def timeout_ctx(self):
         return gevent.Timeout(self.cfg.keepalive, False)

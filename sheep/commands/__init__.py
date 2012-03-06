@@ -22,6 +22,7 @@ def main():
         ('deploy', 'deploy', "Deploy application"),
         ('syncdb', 'syncdb', "Sync database"),
         ('mirror', 'statics', "Mirror statics"),
+        ('venv', 'venv', "Run executables under venv/bin/"),
         ('sync', 'sync', "Sync workspace"),
         ('log', 'log', "Get log from server"),
         ('dbshell', 'dbshell', "Open shell to control database"),
