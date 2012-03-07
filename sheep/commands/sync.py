@@ -2,6 +2,7 @@
 # encoding: UTF-8
 
 import os
+import sys
 import logging
 from subprocess import check_call
 
