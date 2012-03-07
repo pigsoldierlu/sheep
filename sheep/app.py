@@ -213,7 +213,7 @@ class StaticFileApplication(object):
             return mtime > t
 
     def __call__(self, environ, start_response):
-        path = self.path
+        path = os.path.join(os.environ['SHEEP_APPROOT'], self.path)
         if os.path.isfile(path):
             mimetype = mimetypes.guess_type(path)[0] or 'text/plain'
             last_modified = self._generate_last_modified_string(path)
