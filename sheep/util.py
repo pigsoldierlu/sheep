@@ -8,6 +8,7 @@ import logging
 import tempfile
 import threading
 import ConfigParser
+from cStringIO import StringIO
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError, call
 
 import yaml
