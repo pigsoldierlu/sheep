@@ -54,3 +54,15 @@ def when_ready(server):
     """
 
     Reloader(server).start()
+
+if 'SHEEP_APPROOT' in os.environ:
+    local_config_path = os.path.join(os.environ['SHEEP_APPROOT'],
+                                     'local_appserver_config.py')
+    if os.path.exists(local_config_path):
+        namespace = {}
+        try:
+            execfile(local_config_path, namespace)
+        except Exception:
+            pass
+        else:
+            globals().update(namespace)
