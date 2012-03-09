@@ -4,7 +4,7 @@
 import os
 import sys
 import logging
-from subprocess import check_call
+from subprocess import check_call, call
 
 from sheep.consts import VENV_DIR_KEY, DEFAULT_VENV_DIR
 from sheep.util import find_app_root, load_app_config, get_vcs, is_pip_compatible
@@ -29,8 +29,11 @@ def main(args):
     elif vcs == 'svn':
         check_call(['svn', 'up', approot])
     elif vcs == 'git':
-        check_call(['git', '--git-dir', os.path.join(approot, '.git'),
-                    '--work-tree', approot, 'pull'])
+        try:
+            check_call(['git', '--git-dir', os.path.join(approot, '.git'),
+                        '--work-tree', approot, 'pull'])
+        except:
+            call(['git', '--git-dir', os.path.join(approot, '.git'), 'pull'])
     else:
         logger.error("%s is not under version control", approot)
         return 1
