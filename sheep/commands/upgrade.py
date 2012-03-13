@@ -48,8 +48,7 @@ def check_version():
     out = p.communicate()[0]
     m = re.compile(r'(commit\n\s+revision=\"(?P<revision>\d+)\")', re.MULTILINE).search(out)
     if not m:
-        print 'get svn info failed: %s not a svn directory or password not saved?'
-                % sdk_path
+        print 'get svn info failed: %s not a svn directory or password not saved?' % sdk_path
         return False, '', ''
     local_revision = int(m.groupdict()['revision'])
     p = Popen(['svn', 'log', sdk_svn, '-q'], stdout=PIPE, stderr=STDOUT)
