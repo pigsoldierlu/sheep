@@ -21,7 +21,7 @@ def main(args):
         ret += 'Plz use sheep upgrade --up'
     else:
         ret = 'SDK up-to-date'
-    if not args.up:
+    if not flag or not args.up:
         return ret
 
     package_path = os.path.dirname(os.path.dirname(sdk_path))
@@ -47,11 +47,19 @@ def check_version():
     p = Popen(['svn', 'info', sdk_path, '--xml'], stdout=PIPE, stderr=STDOUT)
     out = p.communicate()[0]
     m = re.compile(r'(commit\n\s+revision=\"(?P<revision>\d+)\")', re.MULTILINE).search(out)
+    if not m:
+        print 'get svn info failed: %s not a svn directory or password not saved?'
+                % sdk_path
+        return False, '', ''
     local_revision = int(m.groupdict()['revision'])
     p = Popen(['svn', 'log', sdk_svn, '-q'], stdout=PIPE, stderr=STDOUT)
     for i in xrange(0, 2):
         line = p.stdout.readline().strip()
-    remote_revision = int(line.split(' ', 1)[0][1:])
+    try:
+        remote_revision = int(line.split(' ', 1)[0][1:])
+    except ValueError:
+        logging.info('get svn log failed: %s' % line)
+        return False, '', ''
     return remote_revision > local_revision, remote_revision, local_revision
 
 if __name__ == '__main__':
