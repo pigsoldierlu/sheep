@@ -90,7 +90,10 @@ class WSGIApplication(object):
                         app_handler = handler_factory(h)
                         self.handlers.append(app_handler)
                     except:
-                        continue
+                        logger.exception("load handler failed")
+                        app_handler = LoadErrorHandler(h)
+                        app_handler.set_traceback(sys.exc_info())
+                        self.handlers.append(app_handler)
 
             for handler in self.handlers:
                 m = handler.match(path_info)
@@ -119,7 +122,10 @@ def handler_factory(config):
                 return cls(config)
             except Exception:
                 logger.exception("load handler failed")
-                raise
+                handler = LoadErrorHandler(config)
+                handler.set_traceback(sys.exc_info())
+                return handler
+
     raise InvalidAppConfigError("invalid handler type for %s" % config)
 
 class BaseHandler(object):
@@ -152,6 +158,16 @@ class PrefixMatchMixIn(object):
         if regex.startswith('^') or regex.endswith('$') or '(' in regex:
             raise InvalidAppConfigError('regex starts with "^" or ends with "$" or "(" in it')
         return regex + '.*'
+
+class LoadErrorHandler(BaseHandler, WholeMatchMixIn):
+    def set_traceback(self, traceback):
+        self.traceback = traceback
+
+    def make_app(self, config):
+        def _(e, sr):
+            exc_type, exc_value, tb = self.traceback
+            raise exc_type, exc_value, tb
+        return _
 
 class CallableAppHandler(BaseHandler, WholeMatchMixIn):
     def make_app(self, config):
