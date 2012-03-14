@@ -15,7 +15,7 @@ def patch_MySQLdb(approot):
 
     devcfg = load_dev_config(approot)
     if 'mysql' not in devcfg:
-        return
+        devcfg.update({'mysql': {}})
 
     import MySQLdb
     if getattr(MySQLdb, 'sheep_patched', False):
