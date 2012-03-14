@@ -89,7 +89,7 @@ class WSGIApplication(object):
                     try:
                         app_handler = handler_factory(h)
                         self.handlers.append(app_handler)
-                    except:
+                    except Exception:
                         logger.exception("load handler failed")
                         app_handler = LoadErrorHandler(h)
                         app_handler.set_traceback(sys.exc_info())
@@ -103,7 +103,7 @@ class WSGIApplication(object):
                             '_sheep_profile=1' in environ['QUERY_STRING']:
                         return self.profile_call(handler, environ, start_response)
                     return handler(environ, start_response)
-        except:
+        except Exception:
             logger.exception("error occurred when handle request")
             raise
 
@@ -118,13 +118,7 @@ def handler_factory(config):
               ]
     for handler_type, cls in mapping:
         if handler_type in config:
-            try:
-                return cls(config)
-            except Exception:
-                logger.exception("load handler failed")
-                handler = LoadErrorHandler(config)
-                handler.set_traceback(sys.exc_info())
-                return handler
+            return cls(config)
 
     raise InvalidAppConfigError("invalid handler type for %s" % config)
 

@@ -8,7 +8,13 @@ MAX_OVERFLOW = 20
 POOL_SIZE = 5
 TIMEOUT = 10
 
-pool = QueuePool(_connect, max_overflow=MAX_OVERFLOW, pool_size=POOL_SIZE, timeout=TIMEOUT)
-def connect():
-    return pool.connect()
-
+pools = {} 
+def connect(*a, **kw): 
+    key = (a, tuple(sorted(kw.items())))
+    pool = pools.get(key)
+    if pool is None:
+        def conn():
+            return _connect(*a, **kw)
+        pool = QueuePool(conn, max_overflow=MAX_OVERFLOW, pool_size=POOL_SIZE, timeout=TIMEOUT)
+        pools[key] = pool
+    return pool.connect() 
