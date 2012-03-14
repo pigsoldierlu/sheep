@@ -14,15 +14,12 @@ def patch_MySQLdb(approot):
         install_as_MySQLdb()
 
     devcfg = load_dev_config(approot)
-    if 'mysql' not in devcfg:
-        devcfg.update({'mysql': {}})
-
     import MySQLdb
     if getattr(MySQLdb, 'sheep_patched', False):
         return
 
     origin_connect = MySQLdb.connect
-    mysql_cfg = devcfg['mysql']
+    mysql_cfg = devcfg.get('mysql', {})
 
     def connect(host='sheep', **kwargs):
         kwargs.setdefault('use_unicode', False)
