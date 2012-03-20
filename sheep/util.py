@@ -198,7 +198,7 @@ def get_vcs(path):
     return None
 
 def load_dev_config(root_path):
-    cfgpath = os.path.join(root_path, 'dev.yaml')
+    cfgpath = os.path.join(root_path, os.environ.get('SHEEP_DEV_YAML', 'dev.yaml'))
     if os.path.exists(cfgpath):
         devcfg = yaml.load(open(cfgpath))
     else:
