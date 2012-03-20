@@ -10,6 +10,7 @@ from sheep.consts import VENV_DIR_KEY, DEFAULT_VENV_DIR
 from sheep.util import find_app_root, load_app_config, get_vcs, is_pip_compatible
 
 logger = logging.getLogger(__name__)
+here = os.path.dirname(__file__)
 
 def populate_argument_parser(parser):
     parser.add_argument('root_path', metavar="<app root>", nargs='?',
@@ -42,9 +43,16 @@ def main(args):
         os.mkdir(os.path.join(approot, 'permdir'))
 
     if not os.path.exists(venvdir):
+        pkgdir = os.path.join(os.path.dirname(os.path.dirname(here)),
+                              '3rdparty')
         logger.info('Creating virtualenv at %s...', venvdir)
-        check_call(['virtualenv', '--no-site-packages', venvdir,
-                    '--prompt', '(%s)' % appname])
+        check_call(['python', os.path.join(pkgdir, 'virtualenv.py'),
+                    '--no-site-packages',
+                    '--distribute',
+                    '--extra-search-dir', pkgdir,
+                    '--never-download',
+                    '--prompt', '(%s)' % appname,
+                    venvdir])
 
     sitecustomize_path = os.path.join(venvdir, 'lib',
                         'python'+sys.version[:3], 'sitecustomize.py')

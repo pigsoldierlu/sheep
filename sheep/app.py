@@ -62,7 +62,7 @@ class WSGIApplication(object):
                 if h[0] == 'Content-Length':
                     continue
                 new_headers.append(h)
-            start_response(status, new_headers, exc_info)
+            return start_response(status, new_headers, exc_info)
 
         ret = prof.runcall(lambda h, e, r:list(h(e, r)), handler, environ, sr)
         prof.dump_stats(stats_file.name)
