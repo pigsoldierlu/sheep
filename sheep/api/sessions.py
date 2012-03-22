@@ -25,9 +25,11 @@ class SessionMiddleware(sessions.SessionMiddleware):
 
         def injecting_start_response(status, headers, exc_info=None):
             if session.should_save:
-                age = self.cookie_age
-                if session.get('_sheep_permstore', None):
-                    age = 60*60*24*30
+                age = session.get('_sheep_permstore', self.cookie_age)
+                try:
+                    age = int(age)
+                except:
+                    age = self.cookie_age
                 self.store.save(session)
                 headers.append(('Set-Cookie', dump_cookie(self.cookie_name,
                                 session.sid, age,
