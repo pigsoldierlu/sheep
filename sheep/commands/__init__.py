@@ -23,6 +23,7 @@ def main():
         ('syncdb', 'syncdb', "Sync database"),
         ('mirror', 'statics', "Mirror statics"),
         ('venv', 'venv', "Run executables under venv/bin/"),
+        ('test', 'test', "Run tests"),
         ('sync', 'sync', "Sync workspace"),
         ('log', 'log', "Get log from server"),
         ('dbshell', 'dbshell', "Open shell to control database"),
@@ -31,8 +32,13 @@ def main():
         ('freeze', 'freeze', "Dump requirements in pip-req.txt"),
     ]
     for command, module_name, help_text in subcommands:
-        module = __import__('sheep.commands.'+module_name, globals(), locals(),
-                            ['populate_argument_parser', 'main'])
+        try:
+            module = __import__('sheep.commands.'+module_name, globals(), locals(),
+                                ['populate_argument_parser', 'main'])
+        except ImportError:
+            import traceback; traceback.print_exc()
+            print >>sys.stderr, "Can not import command %s, skip it" % command
+            continue
 
         if command in ('install', 'uninstall'):
             subparser = subparsers.add_parser(command, help=help_text,

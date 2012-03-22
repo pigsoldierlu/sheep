@@ -6,12 +6,8 @@
 from .util import load_dev_config, load_app_config
 
 def patch_MySQLdb(approot):
-    try:
-        from pymysql import install_as_MySQLdb
-    except ImportError:
-        pass
-    else:
-        install_as_MySQLdb()
+    from pymysql import install_as_MySQLdb
+    install_as_MySQLdb()
 
     devcfg = load_dev_config(approot)
     import MySQLdb

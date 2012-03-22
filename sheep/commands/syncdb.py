@@ -28,31 +28,40 @@ def populate_argument_parser(parser):
     parser.add_argument('--dump-mysql', type=str, default='db_dumps.sql',
                         help="Path and filename to store mysql dumping file"
                              "[default: named db_dumps.sql store in current dir]")
+    parser.add_argument('--remote', action='store_true',
+                        help="Really sync to production database")
+
 def main(args):
     root_path = args.root_path or find_app_root()
     sync_database(root_path, args.dump_mysql, server=args.server, \
-                  sync_data=args.data, reset=args.reset)
+                  sync_data=args.data, reset=args.reset, \
+                  remote=args.remote)
 
-def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER, sync_data=False, reset=False):
+def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER,
+                  sync_data=False, reset=False, remote=False):
     appcfg = load_app_config(root_path)
     devcfg = load_dev_config(root_path)
     if 'mysql' not in devcfg:
         logger.info("No MySQL configuration found in dev.yaml.")
-        return 'Syncdb succeeded.'
+        return
 
-    logger.info("Syncing database to servers...")
+    logger.info("Dumping database to %s...", dump_mysql)
     with open(dump_mysql, 'w') as dumpfile:
         conn = MySQLdb.connect(**devcfg['mysql'])
         try:
             struct, data = dumps(dumpfile, conn, sync_data)
             appname = appcfg['application']
-            result = verify(appname, struct, data, reset, server)
-        except:
-            logger.exception('Error occured.')
-            return
         finally:
             conn.close()
-    return result
+
+    if remote:
+        logger.info("Syncing database to servers...")
+        try:
+            result = verify(appname, struct, data, reset, server)
+        except:
+            logger.exception('Error occured')
+            return
+        return result
 
 def verify(appname, dumps, data, reset, server):
     logger.debug(dumps)

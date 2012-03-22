@@ -69,7 +69,7 @@ def _main(args):
     appcfg = load_app_config(root_path)
     activate_virtualenv(root_path)
 
-    ret = sync_database(root_path, args.dump_mysql, args.server)
+    ret = sync_database(root_path, args.dump_mysql, args.server,remote=True)
     if 'succeeded' not in ret:
         logger.info("Syncdb failed, deploy exit ...")
         sys.exit(1)

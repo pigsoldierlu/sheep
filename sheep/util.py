@@ -15,12 +15,30 @@ import yaml
 
 from .consts import VENV_DIR_KEY, DEFAULT_VENV_DIR
 
-def load_app_config(root_path):
+def load_app_config(root_path, replace_macros=True):
     appconf_path = os.path.join(root_path, 'app.yaml')
-    appconf = yaml.load(open(appconf_path))
-
+    appconf = load_config(appconf_path, replace_macros=replace_macros)
     validate_app_conf(appconf)
     return appconf
+
+def load_dev_config(root_path, filename=None):
+    if filename is None:
+        filename = os.environ.get('SHEEP_DEV_YAML', 'dev.yaml')
+    cfgpath = os.path.join(root_path, filename)
+    return load_config(cfgpath)
+
+def load_config(path, replace_macros=True):
+    py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
+    venv_site_packages = os.path.join('venv', 'lib', py_version,
+                                      'site-packages')
+    if os.path.exists(path):
+        f = open(path)
+        if replace_macros:
+            f = StringIO(f.read().replace('${VENV_SITE_PACKAGES}', venv_site_packages))
+        return yaml.load(f)
+
+    else:
+        return {}
 
 def validate_app_conf(appconf):
     """
@@ -196,14 +214,6 @@ def get_vcs(path):
         if os.path.exists(os.path.join(path, '.'+vcs)):
             return vcs
     return None
-
-def load_dev_config(root_path):
-    cfgpath = os.path.join(root_path, os.environ.get('SHEEP_DEV_YAML', 'dev.yaml'))
-    if os.path.exists(cfgpath):
-        devcfg = yaml.load(open(cfgpath))
-    else:
-        devcfg = {}
-    return devcfg
 
 def is_pip_compatible(pip_path):
     """Check if `pip --save-download` is supported"""
