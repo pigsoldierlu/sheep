@@ -91,7 +91,7 @@ def dumps(dumpfile, conn, sync_data = False):
         struct = []
         result.append({table[0]:[]})
         ret = cur.fetchall()[0][1]
-        dumpfile.write(ret)
+        dumpfile.write(ret + ';')
         dumpfile.write('\r\n')
         for col in ret.split('\n')[1:-1]:
             col = col.strip()
