@@ -43,7 +43,7 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER,
     devcfg = load_dev_config(root_path)
     if 'mysql' not in devcfg:
         logger.info("No MySQL configuration found in dev.yaml.")
-        return
+        return 'succeeded'
 
     logger.info("Dumping database to %s...", dump_mysql)
     with open(dump_mysql, 'w') as dumpfile:
@@ -60,7 +60,7 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER,
             result = verify(appname, struct, data, reset, server)
         except:
             logger.exception('Error occured')
-            return
+            return 'failed'
         return result
 
 def verify(appname, dumps, data, reset, server):
