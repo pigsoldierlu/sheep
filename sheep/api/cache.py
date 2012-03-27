@@ -19,7 +19,7 @@ class Cache(object):
             if args:
                 key = self._prefix + ':' + '-'.join(str(a) for a in args)
             else:
-                key = self._prefix
+                key = self._prefix + ':'
 
             if kwargs:
                 for k, v in kwargs.iteritems():
