@@ -3,6 +3,7 @@
 
 import re
 import os
+import logging
 from subprocess import Popen, PIPE, STDOUT
 
 sdk_svn = 'http://ursa.googlecode.com/svn/sheep-farm/sheep'
