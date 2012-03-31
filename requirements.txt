@@ -17,4 +17,4 @@ redis==2.4.11
 websocket-client==0.4.1
 Werkzeug==0.8.2
 python-gevent-profiler==0.2
-pool==0.1dev
+pool==0.1.1dev
