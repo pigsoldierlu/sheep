@@ -253,5 +253,4 @@ def set_environ(environ):
     get_local().environ = environ
 
 def get_environ():
-    return get_local().environ
-
+    return getattr(get_local(), 'environ', {})
