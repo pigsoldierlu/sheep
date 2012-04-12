@@ -17,6 +17,7 @@ try:
     import gevent
 except ImportError:
     raise RuntimeError("You need gevent installed to use this worker.")
+import gevent.core
 from gevent.pool import Pool
 from gevent.server import StreamServer
 from gevent import pywsgi
