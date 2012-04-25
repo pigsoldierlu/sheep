@@ -1,6 +1,5 @@
 Mako==0.5.0
 MarkupSafe==0.15
-PyMySQL==0.5
 Paste==1.7.5.1
 PasteDeploy==1.5.0
 PasteScript==1.7.5
@@ -18,3 +17,4 @@ websocket-client==0.4.1
 Werkzeug==0.8.2
 python-gevent-profiler==0.2
 pool==0.1.1dev
+-e git+git://github.com/CMGS/PyMySQL.git#egg=PyMySQL
