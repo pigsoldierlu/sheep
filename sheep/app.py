@@ -117,6 +117,7 @@ def handler_factory(config):
                ('static_files', StaticFilesHandler),
                ('paste', PasteHandler),
                ('websocket', WebsocketAppHandler),
+               # callable handler is for easier test case writting
                ('callable', CallableAppHandler),
               ]
     for handler_type, cls in mapping:

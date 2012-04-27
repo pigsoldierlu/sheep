@@ -14,7 +14,7 @@ from sheep.gworkers.async import ALREADY_HANDLED
 
 logger = logging.getLogger(__name__)
 
-WS_KEY = "708EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+WS_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 class WebSocketWSGI(object):
     def __init__(self, handler):
