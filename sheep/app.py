@@ -15,6 +15,7 @@ from cStringIO import StringIO
 from gunicorn.app.base import Application
 from gunicorn import util
 
+from .libs.websocket import WebSocketWSGI
 from .util import load_app_config, set_environ
 
 logger = logging.getLogger()
@@ -115,6 +116,7 @@ def handler_factory(config):
     mapping = [('wsgi_app', WSGIAppHandler),
                ('static_files', StaticFilesHandler),
                ('paste', PasteHandler),
+               ('websocket', WebsocketAppHandler),
                ('callable', CallableAppHandler),
               ]
     for handler_type, cls in mapping:
@@ -171,6 +173,12 @@ class CallableAppHandler(BaseHandler, WholeMatchMixIn):
 class WSGIAppHandler(BaseHandler, WholeMatchMixIn):
     def make_app(self, config):
         return util.import_app(config['wsgi_app'])
+
+class WebsocketAppHandler(WSGIAppHandler):
+    def make_app(self, config):
+        handle = util.import_app(config['websocket'])
+        app = WebSocketWSGI(handle)
+        return app
 
 class PasteHandler(WSGIAppHandler):
     def make_app(self, config):
