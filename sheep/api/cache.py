@@ -14,7 +14,7 @@ new_pattern = re.compile(r'\{(\w+(\.\w+|\[\w+\])?)\}')
 
 __formaters = {}
 
-backend = _cache.FileSystemCache('/tmp')
+backend = _cache.FileSystemCache('/tmp/sheep')
 
 def gen_key(key_pattern, arg_names, defaults, *a, **kw):
     return gen_key_factory(key_pattern, arg_names, defaults)(*a, **kw)
