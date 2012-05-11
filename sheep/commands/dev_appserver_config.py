@@ -21,33 +21,43 @@ class Reloader(threading.Thread):
         self.setDaemon(True)
 
     def run(self):
-        modify_times = {}
         monitor_dirs = os.environ.get('SHEEP_RELOAD_MONITOR_DIRS', '').split(':')
+        modify_times = gen_files(monitor_dirs)
 
-        for monitor_dir in monitor_dirs:
-            for root, dirs, files in os.walk(monitor_dir):
-                if '/.svn' in root:
-                    continue
-                for _file in (os.path.join(root, name) for name in files):
-                    if _file.endswith('.py') or _file.endswith('.ptl') \
-                            or _file.endswith('.yaml'):
-                        modify_times[_file] = os.stat(_file).st_mtime
-
-        while os.getpid() == self.server.pid:
+        while os.getpid() == self.server.pid:   # do not monitor in worker processes
             #start = time.time()
-            for _file, mtime in modify_times.iteritems():
-                if not os.path.exists(_file):
-                    # file deleted
+            for _file, mtime in modify_times.items():
+                try:
+                    if mtime != os.stat(_file).st_mtime:
+                        print '%s modified, reload workers...' % _file
+                        os.kill(self.server.pid, signal.SIGHUP)
+                        modify_times[_file] = os.stat(_file).st_mtime
+                except OSError, e:
                     print "%s deleted, reload workers..." % _file
                     os.kill(self.server.pid, signal.SIGHUP)
                     del modify_times[_file]
 
-                elif mtime != os.stat(_file).st_mtime:
-                    print '%s modified, reload workers...' % _file
-                    os.kill(self.server.pid, signal.SIGHUP)
-                    modify_times[_file] = os.stat(_file).st_mtime
+            new_modify_times = gen_files(monitor_dirs)
+            add_files = set(new_modify_times).difference(modify_times)
+            if add_files:
+                print 'add files', add_files
+                os.kill(self.server.pid, signal.SIGHUP)
+                modify_times = new_modify_times
+
             #print 'Done check, %s seconds spent' % (time.time()-start,)
             time.sleep(2)
+
+def gen_files(monitor_dirs):
+    modify_times = {}
+    for monitor_dir in monitor_dirs:
+        for root, dirs, files in os.walk(monitor_dir):
+            if '/.svn' in root:
+                continue
+            for _file in (join(root, name) for name in files):
+                if _file.endswith('.py') or _file.endswith('.ptl') \
+                        or _file.endswith('.yaml'):
+                    modify_times[_file] = os.stat(_file).st_mtime
+    return modify_times
 
 def when_ready(server):
     """Gunicorn server ready hook
