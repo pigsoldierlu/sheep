@@ -39,14 +39,16 @@ def patch_MySQLdb(approot):
 
 def patch_subprocess():
     import subprocess
-    from libs.subprocess import Popen, PIPE
+    subprocess.OLDPIPE = subprocess.PIPE
+    subprocess.OLDPopen = subprocess.Popen
+
+    from sheep.libs.subprocess import Popen, PIPE
     if getattr(subprocess, 'sheep_patched', False):
         return
 
     subprocess.PIPE = PIPE
     subprocess.Popen = Popen
     setattr(subprocess, 'sheep_patched', '')
-
 
 def patch_all(approot):
     appcfg = load_app_config(approot)

@@ -8,6 +8,7 @@ from subprocess import check_call, Popen, PIPE, CalledProcessError
 from optparse import OptionParser
 import shutil
 from contextlib import contextmanager
+import urllib
 
 GREEN = '\x1b[01;32m'
 NORMAL = '\x1b[0m'
@@ -25,6 +26,8 @@ def main():
     parser = OptionParser(usage="%prog [options] [dir]")
     parser.add_option('--revision', type='int',
                       help="Update to a specific revision of SDK [default: HEAD]")
+    parser.add_option('--sdk-src',
+                      help="Use the checked out source code (debug purpose only)")
     options, args = parser.parse_args()
     dest_dir = args[0] if args else 'sheep'
     dest_dir = os.path.abspath(dest_dir)
@@ -33,20 +36,27 @@ def main():
     if not which('svn'):
         return "Command svn not found.  Please install subversion and " \
                 "make sure svn is in $PATH."
+    if not check_prerequirements():
+        return 1
 
     if not os.path.exists(dest_dir):
         os.mkdir(dest_dir)
 
-    install_sheep_sdk(dest_dir, revision=options.revision)
+    install_sheep_sdk(dest_dir, revision=options.revision, \
+            sdk_src_dir=options.sdk_src)
 
 
-def install_sheep_sdk(dest_dir, revision=None):
+def install_sheep_sdk(dest_dir, revision=None, sdk_src_dir=None):
     src_dir = os.path.join(dest_dir, 'sdk')
-    cmd = ['svn', 'co', 'http://ursa.googlecode.com/svn/sheep-farm/sheep',
-           src_dir]
-    if revision is not None:
-        cmd += ['-r', str(revision)]
-    check_call(cmd)
+
+    if sdk_src_dir:
+        shutil.copytree(sdk_src_dir, src_dir)
+    else:
+        cmd = ['svn', 'co', 'http://ursa.googlecode.com/svn/sheep-farm/sheep',
+               src_dir]
+        if revision is not None:
+            cmd += ['-r', str(revision)]
+        check_call(cmd)
 
     pkgdir = os.path.abspath(os.path.join(src_dir, '3rdparty'))
 
@@ -63,6 +73,8 @@ def install_sheep_sdk(dest_dir, revision=None):
     # available
     check_call([pip_path, 'install',
                 os.path.join(pkgdir, 'pip-%s.tar.gz' % PIP_VERSION)])
+
+    install_libgreenify(dest_dir)
 
     check_call([pip_path, 'install',
                 '-r', os.path.join(src_dir, 'requirements.txt'),
@@ -97,6 +109,30 @@ def which(cmd):
             if os.path.exists(name) and os.access(name, os.F_OK|os.X_OK):
                 return name
 
+def check_prerequirements():
+    for cmd in ['svn', 'git', 'cmake', 'make']:
+        if not which(cmd):
+            print 'Command "%s" not found.  Please make sure it is in $PATH.' % cmd
+            return False
+    return True
+
+def install_libgreenify(dest_dir):
+    srcdir = os.path.join(dest_dir, 'src', 'greenify')
+    if os.path.exists(srcdir):
+        check_call(['git', '--git-dir=%s' % os.path.join(srcdir, '.git'),
+                    '--work-tree=%s' % srcdir, 'pull'])
+    else:
+        check_call(['git', 'clone', 'git://github.com/hongqn/greenify.git',
+                    srcdir])
+
+    with chdir(srcdir):
+        check_call(['cmake', '-G', 'Unix Makefiles',
+                    '-D', 'CMAKE_INSTALL_PREFIX=%s' % dest_dir, '.'])
+        check_call(['make'])
+        check_call(['make', 'install'])
+
+        os.environ['LIBGREENIFY_PREFIX'] = dest_dir
+        check_call([os.path.join(dest_dir, 'bin', 'python'), 'setup.py', 'install'])
 
 if __name__ == '__main__':
     sys.exit(main())
