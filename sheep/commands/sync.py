@@ -68,9 +68,7 @@ if sdk_path:
     site.addsitedir(sdk_site_dir)
     approot = os.environ.get('SHEEP_APPROOT'):
     if approot:
-        venv_paths = filter(lambda p: p.startswith(approot), sys.path)
-        for p in venv_paths:
-            sys.path.insert(0, p)
+        sys.path[:0] = [p for p in sys.path if p.startswith(approot)]
 
         from sheep.util import init_sdk_environ
         init_sdk_environ(os.environ['SHEEP_APPROOT'])
