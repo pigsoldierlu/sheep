@@ -66,7 +66,12 @@ if sdk_path:
     sdk_site_dir = os.path.join(sdk_path, 'lib', 'python'+sys.version[:3],
                     'site-packages')
     site.addsitedir(sdk_site_dir)
-    if os.environ.get('SHEEP_APPROOT'):
+    approot = os.environ.get('SHEEP_APPROOT'):
+    if approot:
+        venv_paths = filter(lambda p: p.startswith(approot), sys.path)
+        for p in venv_paths:
+            sys.path.insert(0, p)
+
         from sheep.util import init_sdk_environ
         init_sdk_environ(os.environ['SHEEP_APPROOT'])
 """)
