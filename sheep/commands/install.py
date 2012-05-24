@@ -19,7 +19,7 @@ def main(args, argv):
     approot = find_app_root()
     venvdir = get_venvdir(approot)
     pip_path = os.path.join(venvdir, 'bin', 'pip')
-    os.environ['SHEEP_APPROOT'] = approot
+    os.environ['SHEEP_IGN_SDKPATH'] = 'true'
 
     if args.help:
         print "Usage: sheep install ..."

@@ -162,8 +162,10 @@ def log_check_call(*args, **kwargs):
 dev_re = re.compile(r'-dev(_r\d+)?$')
 def dump_requirements(approot):
     proj_vcs_url = get_vcs_url(approot)
+    os.environ['SHEEP_IGN_SDKPATH'] = 'true'
     p = Popen([os.path.join(get_venvdir(approot), 'bin', 'pip'), 'freeze'],
               stdout=PIPE, stderr=tempfile.TemporaryFile())
+    os.environ.pop('SHEEP_IGN_SDKPATH')
     with open(os.path.join(approot, 'pip-req.txt'), 'w') as f:
         for line in p.stdout:
             if proj_vcs_url in line:

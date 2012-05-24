@@ -21,7 +21,7 @@ class Reloader(threading.Thread):
         self.setDaemon(True)
 
     def run(self):
-        monitor_dirs = os.environ.get('DAE_RELOAD_MONITOR_DIRS', '').split(':')
+        monitor_dirs = os.environ.get('SHEEP_RELOAD_MONITOR_DIRS', '').split(':')
         modify_times = gen_files(monitor_dirs)
 
         while os.getpid() == self.server.pid:   # do not monitor in worker processes

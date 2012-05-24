@@ -62,7 +62,8 @@ def main(args):
             f.write("""\
 import os, sys, site
 sdk_path = os.environ.get('SHEEP_SDK_PATH')
-if sdk_path:
+ignore_sdk_path = os.environ.get('SHEEP_IGN_SDKPATH')
+if sdk_path and not ignore_sdk_path:
     sdk_site_dir = os.path.join(sdk_path, 'lib', 'python'+sys.version[:3],
                     'site-packages')
     site.addsitedir(sdk_site_dir)

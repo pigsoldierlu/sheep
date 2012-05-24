@@ -24,6 +24,7 @@ def main(args, argv):
         print
         print "Usage of `pip install' follows."
         print
+    os.environ['SHEEP_IGN_SDKPATH'] = 'true'
     retval = call([os.path.join(venvdir, 'bin', 'pip')] + argv)
     dump_requirements(approot)
     return retval

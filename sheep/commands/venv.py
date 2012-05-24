@@ -24,5 +24,7 @@ def main(args):
         return 1
 
     os.environ['SHEEP_SDK_PATH'] = site.PREFIXES[0]
+    if args.executable == 'pip':
+        os.environ['SHEEP_IGN_SDKPATH'] = 'true'
     init_sdk_environ(approot)
     return call([executable] + args.arg)
