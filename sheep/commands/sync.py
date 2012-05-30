@@ -75,6 +75,9 @@ if sdk_path and not ignore_sdk_path:
         init_sdk_environ(os.environ['SHEEP_APPROOT'])
 """)
 
+    os.environ['SHEEP_APPROOT'] = approot
+    os.environ['SHEEP_IGN_SDKPATH'] = 'True'
+
     if not is_pip_compatible(os.path.join(venvdir, 'bin', 'pip')):
         logger.info('Installing patched pip...')
         check_call([os.path.join(venvdir, 'bin', 'pip'), 'install', '-U',
