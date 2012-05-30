@@ -16,6 +16,8 @@ def use_pymysql():
 def patch_MySQLdb(approot):
     use_pymysql()
     devcfg = load_dev_config(approot)
+    if not devcfg:
+        return
 
     import MySQLdb
     if getattr(MySQLdb, 'sheep_patched', False):
