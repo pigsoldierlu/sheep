@@ -3,7 +3,6 @@
 
 import os, sys
 
-from sheep.monkey import patch_all
 from sheep.gworkers.mix import MixedGunicornApplication
 from sheep.util import load_app_config, activate_virtualenv, find_app_root, \
         load_dev_config, init_sdk_environ
