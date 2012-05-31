@@ -41,7 +41,7 @@ def gen_files(monitor_dirs):
         for root, dirs, files in os.walk(monitor_dir):
             if '/.svn' in root:
                 continue
-            for _file in (join(root, name) for name in files):
+            for _file in (os.path.join(root, name) for name in files):
                 if _file.endswith('.py') or _file.endswith('.ptl') \
                         or _file.endswith('.yaml'):
                     modify_times[_file] = os.stat(_file).st_mtime
