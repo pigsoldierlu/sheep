@@ -4,7 +4,7 @@
 import os
 import sys
 import logging
-from subprocess import check_call, call
+from subprocess import check_call, call, Popen, PIPE
 
 from sheep.consts import VENV_DIR_KEY, DEFAULT_VENV_DIR
 from sheep.util import find_app_root, load_app_config, get_vcs, is_pip_compatible
@@ -93,6 +93,8 @@ if sdk_path and not ignore_sdk_path:
                     '--fallback-index-url', 'http://pypi.python.org/simple/',
                    ])
 
+    clear_redundant_pkgs(venvdir)
+
     if os.path.exists(os.path.join(approot, 'setup.py')):
         logger.info("Running python setup.py develop")
         check_call([os.path.join(venvdir, 'bin', 'python'),
@@ -100,3 +102,25 @@ if sdk_path and not ignore_sdk_path:
                     'develop'])
 
     logger.info('Sync success...')
+
+def clear_redundant_pkgs(venvdir):
+    pip = os.path.join(venvdir, 'bin', 'pip')
+    p = Popen([pip, 'freeze'], stdout=PIPE, stderr=PIPE)
+    pkgs = set([line.strip() for line in p.stdout])
+
+    reqfile = os.path.join(os.path.dirname(venvdir), 'pip-req.txt')
+    if not os.path.isfile(reqfile):
+        return
+
+    fobj = open(reqfile)
+    req_pkgs = set([line.strip() for line in iter(fobj.readline, '')])
+
+    for pkg in pkgs - req_pkgs:
+        try:
+            uninstall = Popen([pip, 'uninstall', pkg], stdin=PIPE)
+            uninstall.stdin.write('y\n')
+            uninstall.communicate()
+            uninstall.wait()
+        except:
+            logger.exception('uninstall error')
+
