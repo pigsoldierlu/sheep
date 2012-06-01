@@ -114,11 +114,11 @@ def clear_redundant_pkgs(venvdir):
 
     fobj = open(reqfile)
     req_pkgs = set([line.strip() for line in iter(fobj.readline, '')])
+    yes = Popen(['yes'], stdout=PIPE)
 
     for pkg in pkgs - req_pkgs:
         try:
-            uninstall = Popen([pip, 'uninstall', pkg], stdin=PIPE)
-            uninstall.stdin.write('y\n')
+            uninstall = Popen([pip, 'uninstall', pkg], stdin=yes.stdout)
             uninstall.communicate()
             uninstall.wait()
         except:
