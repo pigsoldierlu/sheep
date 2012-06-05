@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
+import re
 import os
 import sys
 import logging
@@ -104,16 +105,22 @@ if sdk_path and not ignore_sdk_path:
     logger.info('Sync success...')
 
 def clear_redundant_pkgs(venvdir):
+    def _map(line):
+        line = line.strip()
+        regex = re.compile(r'([-\w]+)@(?:[-\w]+)#egg=(?:[-\w]+)$')
+        match = regex.search(line)
+        return match.group(1) if match else line
+
     pip = os.path.join(venvdir, 'bin', 'pip')
     p = Popen([pip, 'freeze'], stdout=PIPE, stderr=PIPE)
-    pkgs = set([line.strip() for line in p.stdout])
+    pkgs = set([_map(line) for line in p.stdout])
 
     reqfile = os.path.join(os.path.dirname(venvdir), 'pip-req.txt')
     if not os.path.isfile(reqfile):
         return
 
     fobj = open(reqfile)
-    req_pkgs = set([line.strip() for line in iter(fobj.readline, '')])
+    req_pkgs = set([_map(line) for line in iter(fobj.readline, '')])
     yes = Popen(['yes'], stdout=PIPE)
 
     for pkg in pkgs - req_pkgs:
