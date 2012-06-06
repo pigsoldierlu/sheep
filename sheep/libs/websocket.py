@@ -389,7 +389,11 @@ class WebSocket(object):
             #    msg = struct.pack(">H%ds" % (len(reason)), code)
 
             buf, h, t = self.encode_hybi(msg, opcode=0x08, base64=False)
-            self.socket.sendall(buf)
+            try:
+                self.socket.sendall(buf)
+            except SocketError:
+                if not ignore_send_errors:
+                    raise
             self.websocket_closed = True
 
         elif self.version == 76 and not self.websocket_closed:
@@ -402,10 +406,10 @@ class WebSocket(object):
                     raise
             self.websocket_closed = True
 
-    def close(self):
+    def close(self, ignore_send_errors=False):
         """Forcibly close the websocket; generally it is preferable to
         return from the handler method."""
-        self._send_closing_frame()
+        self._send_closing_frame(ignore_send_errors)
         self.socket.shutdown(True)
         self.socket.close()
 
