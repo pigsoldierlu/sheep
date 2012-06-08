@@ -47,6 +47,18 @@ def log_check_call(*args, **kwargs):
 
 check_call = log_check_call
 
+def check_call_pip(cmd, **kwargs):
+    wipe = Popen(['yes', 'w'], stdout=PIPE, stderr=open('/dev/null', 'w'))
+    try:
+        check_call(cmd, stdin=wipe.stdout, **kwargs)
+    finally:
+        #fixed for osx
+        try:
+            wipe.terminate()
+        except OSError:
+            pass
+
+
 def main():
     parser = OptionParser(usage="%prog [options]")
     parser.add_option('-v', '--verbose', action='store_true',
@@ -93,12 +105,8 @@ def install_sheep_sdk():
     # upgrade to recent version of pip, to ensure --no-install option
     # available
     logger.info("Installing patched pip...")
-    wipe = Popen(['yes', 'w'], stdout=PIPE, stderr=open('/dev/null'))
-    check_call([pip_path, 'install',
-                '-e', 'hg+https://bitbucket.org/CMGS/pip#egg=pip'],
-               stdin=wipe.stdout)
-    #fixed for osx
-    wipe.terminate()
+    check_call_pip([pip_path, 'install',
+                    '-e', 'hg+https://bitbucket.org/CMGS/pip#egg=pip'])
 
     logger.info("Installing requirements...")
 
@@ -115,20 +123,17 @@ def install_sheep_sdk():
         else:
             logger.debug(line.rstrip())
 
-    wipe = Popen(['yes', 'w'], stdout=PIPE, stderr=open('/dev/null'))
-    check_call([pip_path, 'install',
-                '-r', os.path.join(here, 'requirements.txt'),
-                '--find-links', 'file://' + pkgdir,
-                '--no-index',
-               ], log=log, stdin=wipe.stdout)
-    #fixed for osx
-    wipe.terminate()
-
-    if sys.version_info < (2, 7):
-        check_call([pip_path, 'install', 'argparse==1.2.1',
+    check_call_pip([pip_path, 'install',
+                    '-r', os.path.join(here, 'requirements.txt'),
                     '--find-links', 'file://' + pkgdir,
                     '--no-index',
-                   ])
+                   ], log=log)
+
+    if sys.version_info < (2, 7):
+        check_call_pip([pip_path, 'install', 'argparse==1.2.1',
+                        '--find-links', 'file://' + pkgdir,
+                        '--no-index',
+                       ])
 
     with chdir(here):
         logger.info("Running setup.py develop for SHEEP SDK...")
