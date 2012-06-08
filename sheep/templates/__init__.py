@@ -62,17 +62,17 @@ class SHEEPTemplate(MyTemplate):
             sys.exit(0)
 
     def post(self, command, output_dir, vars):
-        venvdir = os.path.join(output_dir, DEFAULT_VENV_DIR)
+        #venvdir = os.path.join(output_dir, DEFAULT_VENV_DIR)
 
-        if command.verbose:
-            print "Creating virtual environment at %s" % venvdir
-        check_call(['virtualenv', '--no-site-packages', venvdir,
-                    '--prompt', "(%s)" % vars['appname']])
+        #if command.verbose:
+        #    print "Creating virtual environment at %s" % venvdir
+        #check_call(['virtualenv', '--no-site-packages', venvdir,
+        #            '--prompt', "(%s)" % vars['appname']])
 
-        if command.verbose:
-            print "Installing patched pip"
-        check_call([os.path.join(venvdir, 'bin', 'pip'), 'install', '-q',
-                    '-e', 'hg+https://bitbucket.org/CMGS/pip#egg=pip'])
+        #if command.verbose:
+        #    print "Installing patched pip"
+        #check_call([os.path.join(venvdir, 'bin', 'pip'), 'install', '-q',
+        #            '-e', 'hg+https://bitbucket.org/CMGS/pip#egg=pip'])
 
         if command.verbose:
             print "Setting svn:ignore"
