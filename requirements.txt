@@ -8,7 +8,7 @@ distribute==0.6.24
 gevent==1.0b1
 greenlet==0.3.2
 gunicorn==0.13.4
-mercurial==2.0.1
+mercurial==2.2.2
 virtualenv==1.7
 web.py==0.36
 hiredis==0.1.0
