@@ -5,6 +5,8 @@ import site
 import sys, os
 import logging
 
+from sheep.libs.colorlog import ColorizingStreamHandler
+
 def main():
     os.environ['SHEEP_SDK_PATH'] = site.PREFIXES[0]
     # add the venv/bin/sheep path into $PATH, so that commands like hg,
@@ -33,6 +35,24 @@ def main():
         ('upgrade', 'upgrade', "Upgrade SDK version"),
         ('freeze', 'freeze', "Dump requirements in pip-req.txt"),
     ]
+
+    if len(sys.argv) > 1:
+        from sheep.commands.plugin import PluginCommand
+        subcmd = sys.argv[1]
+        if subcmd not in [sc[0] for sc in subcommands]:
+            for ep in pkg_resources.iter_entry_points('sheep.plugins', name=subcmd):
+                try:
+                    klass = ep.load()
+                except ImportError:
+                    pass
+                else:
+                    if getattr(klass, '__base__', None) is PluginCommand:
+                        sys.exit(klass().run())
+                    else:
+                        raise Exception('%s must be a child-class of '
+                                        'sheep.commands.plugin.PluginCommand' %
+                                        klass)
+
     for command, module_name, help_text in subcommands:
         try:
             module = __import__('sheep.commands.'+module_name, globals(), locals(),
@@ -65,10 +85,9 @@ def main():
         loglevel = logging.DEBUG
     else:
         loglevel = logging.INFO
-    logging.basicConfig(
-        level=loglevel,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        datefmt="%H:%M:%S",
-    )
+
+    logging.StreamHandler = ColorizingStreamHandler
+    logging.BASIC_FORMAT = "%(asctime)s [%(name)s] %(message)s"
+    logging.basicConfig(level=loglevel)
 
     return args.func(args)
