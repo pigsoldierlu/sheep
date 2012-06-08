@@ -1,66 +1,67 @@
 #!/usr/local/bin/python2.7
 #coding:utf-8
 
-import re
-import os
 import logging
-from subprocess import Popen, PIPE, STDOUT
+import os
+from subprocess import Popen, PIPE, call, check_call
 
-sdk_svn = 'http://ursa.googlecode.com/svn/sheep-farm/sheep'
-sdk_path = os.path.dirname(os.path.realpath(__file__))
+from dae.util import chdir
+
+REPO_URL = 'git://github.com/xiaomen/sheep.git'
+RELEASE_BRANCH = 'master'
+
+sdk_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+logger = logging.getLogger(__name__)
 
 def populate_argument_parser(parser):
     parser.add_argument('--up', action='store_true', default=False,
                         help="upgrade sdk [default: false]")
 
 def main(args):
-    flag, rv, lv = check_version()
-    if flag:
-        ret = 'SDK need upgrade\n'
-        ret += 'Remote revision: %d\n' % rv
-        ret += 'Local revision: %d\n' % lv
-        ret += 'Plz use sheep upgrade --up'
+    if args.up:
+        return upgrade_sdk(sdk_path)
+
     else:
-        ret = 'SDK up-to-date'
-    if not flag or not args.up:
-        return ret
+        flag, rv, lv = check_version()
+        if flag:
+            logger.warning("A new version of SHEEP SDK has been released!")
+            logger.warning("Run `sheep upgrade --up` to upgrade SDK")
+        else:
+            logger.info('Your SDK is up to date')
 
-    package_path = os.path.dirname(os.path.dirname(sdk_path))
-    target_path = os.path.dirname(package_path)
-    upgrade_sdk(target_path, package_path)
 
-def upgrade_sdk(target_path, package_path):
-    install = os.path.join(package_path, 'install.py')
-    paths = os.environ['PATH'].split(':')
-    execute_path = paths[0]
-    virtual_path = os.environ.get('VIRTUAL_ENV', None)
-    new_paths = []
-    for i in paths:
-        if execute_path in i:
-            continue
-        if virtual_path and virtual_path in i:
-            continue
-        new_paths.append(i)
-    os.environ['PATH'] = ':'.join(new_paths)
-    os.execvpe('python', ['python', install, target_path], env=os.environ)
+def upgrade_sdk(path):
+    venv_bin = os.path.join(path, 'venv', 'bin')
+    os.environ['PATH'] = ':'.join(x for x in os.environ['PATH'].split(':')
+                                  if x != venv_bin)
+    with chdir(path):
+        check_call(['git', 'pull', REPO_URL, RELEASE_BRANCH])
+        return call(['python', 'install.py'])
 
 def check_version():
-    p = Popen(['svn', 'info', sdk_path, '--xml'], stdout=PIPE, stderr=STDOUT)
-    out = p.communicate()[0]
-    m = re.compile(r'(commit\n\s+revision=\"(?P<revision>\d+)\")', re.MULTILINE).search(out)
-    if not m:
-        print 'get svn info failed: %s not a svn directory or password not saved?' % sdk_path
-        return False, '', ''
-    local_revision = int(m.groupdict()['revision'])
-    p = Popen(['svn', 'log', sdk_svn, '-q'], stdout=PIPE, stderr=STDOUT)
-    for i in xrange(0, 2):
-        line = p.stdout.readline().strip()
-    try:
-        remote_revision = int(line.split(' ', 1)[0][1:])
-    except ValueError:
-        logging.info('get svn log failed: %s' % line)
-        return False, '', ''
-    return remote_revision > local_revision, remote_revision, local_revision
+    logger.debug("Getting local revision")
+    local_rev = get_local_revision(sdk_path)
+    logger.debug("Local revision: %s", local_rev)
+    logger.debug("Getting remote revision")
+    remote_rev = get_remote_revision(sdk_path)
+    logger.debug("Remote revision: %s", remote_rev)
+    return local_rev != remote_rev, remote_rev, local_rev
+
+
+def get_local_revision(path):
+    with chdir(path):
+        return Popen(['git', 'rev-parse', 'HEAD'],
+                     stdout=PIPE).communicate()[0].strip()
+
+def get_remote_revision(path):
+    with chdir(path):
+        check_call(['git', 'fetch', REPO_URL, RELEASE_BRANCH],
+                   stderr=open('/dev/null', 'w'))
+        return Popen(['git', 'rev-parse', 'FETCH_HEAD'],
+                     stdout=PIPE).communicate()[0].strip()
+
+
+
 
 if __name__ == '__main__':
     check_version()
