@@ -5,7 +5,7 @@ import logging
 import os
 from subprocess import Popen, PIPE, call, check_call
 
-from dae.util import chdir
+from sheep.util import chdir
 
 REPO_URL = 'git://github.com/xiaomen/sheep.git'
 RELEASE_BRANCH = 'master'
