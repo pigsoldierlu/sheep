@@ -9,6 +9,7 @@ import tempfile
 import threading
 import ConfigParser
 from cStringIO import StringIO
+from contextlib import contextmanager
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError, call
 
 import yaml
@@ -243,6 +244,13 @@ def init_sdk_environ(approot):
     from sheep.monkey import patch_all
     patch_all(approot)
     os.chdir(approot)
+
+@contextmanager
+def chdir(path):
+    cwd = os.getcwd()
+    os.chdir(path)
+    yield
+    os.chdir(cwd)
 
 local = None
 def get_local():
