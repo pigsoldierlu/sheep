@@ -68,7 +68,7 @@ if sdk_path and not ignore_sdk_path:
     sdk_site_dir = os.path.join(sdk_path, 'lib', 'python'+sys.version[:3],
                     'site-packages')
     site.addsitedir(sdk_site_dir)
-    approot = os.environ.get('SHEEP_APPROOT'):
+    approot = os.environ.get('SHEEP_APPROOT')
     if approot:
         sys.path[:0] = [p for p in sys.path if p.startswith(approot)]
 
