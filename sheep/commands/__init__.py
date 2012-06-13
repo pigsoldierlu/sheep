@@ -5,11 +5,9 @@ import site
 import sys, os
 import logging
 
-from sheep.setup import init
 from sheep.libs.colorlog import ColorizingStreamHandler
 
 def main():
-    init()
 
     from argparse import ArgumentParser
     parser = ArgumentParser()

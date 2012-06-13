@@ -6,7 +6,7 @@ import yaml
 from pkg_resources import load_entry_point
 from sheep.util import find_app_root, load_dev_config
 from sheep.commands.syncdb import sync_database
-from sheep.setup import setup_app
+from sheep.setup import activate_app
 
 TEST_YAML = 'test.yaml'
 
@@ -38,7 +38,7 @@ def main(args):
     if os.path.exists(os.path.join(approot, 'nose.cfg')):
         sys.argv += ['-c', os.path.join(approot, 'nose.cfg')]
     sys.argv += args.arg
-    setup_app(approot)
+    activate_app(approot)
     return nosetests()
 
 

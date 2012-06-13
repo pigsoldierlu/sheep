@@ -6,7 +6,7 @@ import time
 import signal
 import threading
 
-from sheep.setup import setup_app
+from sheep.setup import activate_app
 
 debug = True
 loglevel = 'debug'
@@ -14,7 +14,7 @@ accesslog = '-'
 access_log_format = """%(t)s "%(r)s" %(s)s %(b)s %(HTTP_X_SHEEP_REQUEST_TIME_IN_MS)sms"""
 
 def post_fork(server, workers):
-    setup_app(os.environ['SHEEP_APPROOT'])
+    activate_app(os.environ['SHEEP_APPROOT'])
 
 class Reloader(threading.Thread):
     """Auto reloader for auto-reloading gunicorn workers when .py file modified

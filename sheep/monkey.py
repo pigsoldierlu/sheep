@@ -4,7 +4,8 @@
 """Monkey patches for various module."""
 
 import os
-from .util import load_dev_config
+
+import sheep._impl.monkey as _impl
 
 def use_pymysql():
     try:
@@ -16,17 +17,13 @@ def use_pymysql():
 
 def patch_MySQLdb(approot):
     use_pymysql()
-    devcfg = load_dev_config(approot)
 
     import MySQLdb
     if getattr(MySQLdb, 'sheep_patched', False):
         return
 
     origin_connect = MySQLdb.connect
-    if not devcfg:
-        mysql_cfg = {}
-    else:
-        mysql_cfg = devcfg.get('mysql', {})
+    mysql_cfg = _impl.get_app_mysql_config()
 
     def connect(host='sheep', **kwargs):
         kwargs.setdefault('use_unicode', False)
@@ -71,4 +68,4 @@ def patch_all(approot):
         patch_logging()
 
     patch_MySQLdb(approot)
-
+    _impl.patch_impl()

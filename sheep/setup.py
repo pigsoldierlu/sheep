@@ -7,31 +7,28 @@ setup 操作有两类，影响SHEEP启动代码的(init)，和影响app代码的
 """
 
 import os, sys
-import pkg_resources
 import logging
+
+import sheep._impl.setup as _impl
 
 from .util import load_app_config, get_venvdir
 
-__all__ = ['init', 'init_app', 'setup_app']
+__all__ = ['init', 'init_app', 'activate_app']
 
 def init():
     """初始化SHEEP代码需要的环境"""
-
-    dist = pkg_resources.get_distribution('sheep')
-    os.environ['SHEEP_ENV'] = 'SDK/%s' % dist.version
-    os.environ['SHEEP_SDK_PATH'] = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    _impl.init()
     logging.getLogger('gunicorn').propagate = False
 
 
 def init_app(approot):
     init()
-    os.environ['SHEEP_APPROOT'] = approot
+    os.environ['SHEEP_APPROOT'] = os.path.abspath(approot)
     appcfg = load_app_config(approot)
     os.environ['SHEEP_APPNAME'] = appcfg['application']
     os.environ['SHEEP_WORKER'] = appcfg.get('worker', 'async')
 
-
-def setup_app(approot):
+def activate_app(approot):
     """配置应用代码运行环境"""
 
     init_app(approot)
@@ -41,11 +38,13 @@ def setup_app(approot):
 
     os.chdir(approot)
     activate_virtualenv(approot)
-    sys.path.insert(0, approot)
+    sys.path.insert(0, os.path.abspath(approot))
+
+    _impl.activate_app()
 
 
 def activate_virtualenv(approot):
-    venvdir = get_venvdir(approot)
+    venvdir = os.path.abspath(get_venvdir(approot))
     if not os.path.exists(venvdir):
         raise Exception("No venv dir found.  Have you run sheep sync before?")
 
