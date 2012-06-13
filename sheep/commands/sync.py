@@ -7,8 +7,8 @@ import sys
 import logging
 from subprocess import check_call, call, Popen, PIPE
 
-from sheep.consts import VENV_DIR_KEY, DEFAULT_VENV_DIR
-from sheep.util import find_app_root, load_app_config, get_vcs, is_pip_compatible
+from sheep.util import find_app_root, load_app_config, get_vcs, \
+        is_pip_compatible, get_venvdir
 
 logger = logging.getLogger(__name__)
 here = os.path.dirname(__file__)
@@ -22,8 +22,7 @@ def main(args):
     approot = os.path.abspath(args.root_path or find_app_root())
     appcfg = load_app_config(approot)
     appname = appcfg['application']
-    venvdir = os.path.join(approot,
-                           appcfg.get(VENV_DIR_KEY, DEFAULT_VENV_DIR))
+    venvdir = get_venvdir(approot)
 
     vcs = get_vcs(approot)
     if vcs == 'hg':
@@ -65,15 +64,13 @@ import os, sys, site
 sdk_path = os.environ.get('SHEEP_SDK_PATH')
 ignore_sdk_path = os.environ.get('SHEEP_IGN_SDKPATH')
 if sdk_path and not ignore_sdk_path:
-    sdk_site_dir = os.path.join(sdk_path, 'lib', 'python'+sys.version[:3],
+    sdk_site_dir = os.path.join(sdk_path, 'venv', 'lib', 'python'+sys.version[:3],
                     'site-packages')
     site.addsitedir(sdk_site_dir)
-    approot = os.environ.get('SHEEP_APPROOT')
-    if approot:
-        sys.path[:0] = [p for p in sys.path if p.startswith(approot)]
 
-        from sheep.util import init_sdk_environ
-        init_sdk_environ(os.environ['SHEEP_APPROOT'])
+    approot = os.environ['SHEEP_APPROOT']
+    from sheep.setup import setup_app
+    setup_app(approot)
 """)
 
     os.environ['SHEEP_APPROOT'] = approot

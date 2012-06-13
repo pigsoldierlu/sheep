@@ -5,14 +5,11 @@ import site
 import sys, os
 import logging
 
+from sheep.setup import init
 from sheep.libs.colorlog import ColorizingStreamHandler
 
 def main():
-    os.environ['SHEEP_SDK_PATH'] = site.PREFIXES[0]
-    # add the venv/bin/sheep path into $PATH, so that commands like hg,
-    # virtualenv, etc. can be found.
-    script_path = os.path.realpath(sys.argv[0])
-    os.environ['PATH'] = os.path.dirname(script_path) + ':' + os.environ['PATH']
+    init()
 
     from argparse import ArgumentParser
     parser = ArgumentParser()

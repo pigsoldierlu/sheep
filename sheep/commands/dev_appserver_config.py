@@ -6,10 +6,15 @@ import time
 import signal
 import threading
 
+from sheep.setup import setup_app
+
 debug = True
 loglevel = 'debug'
 accesslog = '-'
 access_log_format = """%(t)s "%(r)s" %(s)s %(b)s %(HTTP_X_SHEEP_REQUEST_TIME_IN_MS)sms"""
+
+def post_fork(server, workers):
+    setup_app(os.environ['SHEEP_APPROOT'])
 
 class Reloader(threading.Thread):
     """Auto reloader for auto-reloading gunicorn workers when .py file modified
@@ -21,7 +26,7 @@ class Reloader(threading.Thread):
         self.setDaemon(True)
 
     def run(self):
-        monitor_dirs = os.environ.get('SHEEP_RELOAD_MONITOR_DIRS', '').split(':')
+        monitor_dirs = [os.environ['SHEEP_APPROOT']] + os.environ.get('SHEEP_RELOAD_MONITOR_DIRS', '').split(':')
         modify_times = gen_files(monitor_dirs)
 
         while os.getpid() == self.server.pid:   # do not monitor in worker processes

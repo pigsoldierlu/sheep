@@ -10,7 +10,7 @@ import logging
 from .syncdb import sync_database
 from .upgrade import check_version
 from .statics import mirror_statics
-from sheep.util import load_app_config, find_app_root, activate_virtualenv, \
+from sheep.util import load_app_config, find_app_root, \
         log_check_call, log_call, get_vcs_url, get_vcs
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,6 @@ def main(args):
 def _main(args):
     root_path = args.root_path or find_app_root()
     appcfg = load_app_config(root_path)
-    activate_virtualenv(root_path)
 
     ret = sync_database(root_path, args.dump_mysql, args.server,remote=True)
     if 'succeeded' not in ret:

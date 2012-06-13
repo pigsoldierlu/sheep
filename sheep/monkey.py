@@ -3,7 +3,8 @@
 
 """Monkey patches for various module."""
 
-from .util import load_dev_config, load_app_config
+import os
+from .util import load_dev_config
 
 def use_pymysql():
     try:
@@ -41,6 +42,8 @@ def patch_MySQLdb(approot):
     MySQLdb.sheep_patched = True
 
 def patch_subprocess():
+    """Only needed for async workers"""
+
     import subprocess
     subprocess.OLDPIPE = subprocess.PIPE
     subprocess.OLDPopen = subprocess.Popen
@@ -53,7 +56,19 @@ def patch_subprocess():
     subprocess.Popen = Popen
     setattr(subprocess, 'sheep_patched', '')
 
+def patch_logging():
+    """Only needed for async workers"""
+
+    import logging
+    from gevent.coros import RLock
+    logging._lock = RLock()
+
 def patch_all(approot):
-    appcfg = load_app_config(approot)
+    if os.environ['SHEEP_WORKER'] == 'async':
+        import gevent.monkey
+        gevent.monkey.patch_all()
+        patch_subprocess()
+        patch_logging()
+
     patch_MySQLdb(approot)
 

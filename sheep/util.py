@@ -14,8 +14,6 @@ from subprocess import Popen, PIPE, STDOUT, CalledProcessError, call
 
 import yaml
 
-from .consts import VENV_DIR_KEY, DEFAULT_VENV_DIR
-
 def load_app_config(root_path, replace_macros=True):
     appconf_path = os.path.join(root_path, 'app.yaml')
     appconf = load_config(appconf_path, replace_macros=replace_macros)
@@ -76,28 +74,8 @@ def validate_appname(appname):
     assert re.match(r'[a-z][a-z0-9_]{0,15}$', appname)
     assert not appname in ('init',)
 
-def activate_virtualenv(approot):
-    venvdir = get_venvdir(approot)
-    if not os.path.exists(venvdir):
-        raise Exception("No venv dir found.  Have you run sheep sync before?")
-
-    activate_path = os.path.join(venvdir, 'bin/activate_this.py')
-    execfile(activate_path, dict(__file__=activate_path))
-
-    # unload pkg_resources, so that the app can import its own version of
-    # pkg_resources from virtual environment.
-    if 'pkg_resources' in sys.modules:
-        del sys.modules['pkg_resources']
-
-    os.environ['VIRTUAL_ENV'] = venvdir
-    os.environ['_OLD_VIRTUAL_PATH'] = os.environ['PATH']
-    os.environ['PATH'] = '%s:%s' % (os.path.join(venvdir, 'bin'),
-                                    os.environ['PATH'])
-
 def get_venvdir(approot):
-    appcfg = load_app_config(approot)
-    venvdir = os.path.join(approot,
-                           appcfg.get(VENV_DIR_KEY, DEFAULT_VENV_DIR))
+    venvdir = os.path.join(approot, 'venv')
     return venvdir
 
 def find_app_root(start_dir=None, raises=True):
@@ -222,28 +200,6 @@ def is_pip_compatible(pip_path):
     """Check if `pip --save-download` is supported"""
     stdout, stderr = Popen([pip_path, 'install', '--help'], stdout=PIPE).communicate()
     return '--save-download' in stdout
-
-def init_sdk_environ(approot):
-    appconf = load_app_config(approot)
-
-    os.environ['SHEEP_APPROOT'] = approot
-    os.environ['SHEEP_RELOAD_MONITOR_DIRS'] = approot
-    os.environ['SHEEP_ENV'] = 'SDK'
-    os.environ['SHEEP_APPNAME'] = appconf['application']
-
-    if 'PYTHONPATH' not in os.environ:
-        os.environ['PYTHONPATH'] = approot
-    else:
-        os.environ['PYTHONPATH'] = approot + ':' + os.environ['PYTHONPATH']
-    sys.path.insert(0, approot)
-
-    activate_virtualenv(approot)
-
-    logging.getLogger('gunicorn').propagate = False
-
-    from sheep.monkey import patch_all
-    patch_all(approot)
-    os.chdir(approot)
 
 @contextmanager
 def chdir(path):
