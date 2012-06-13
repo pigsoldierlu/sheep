@@ -126,5 +126,9 @@ def clear_redundant_pkgs(venvdir):
             uninstall.communicate()
             uninstall.wait()
         except:
+            try:
+                yes.terminate()
+            except OSError:
+                pass
             logger.exception('uninstall error')
 
