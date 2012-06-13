@@ -9,7 +9,7 @@ setup 操作有两类，影响SHEEP启动代码的(init)，和影响app代码的
 import os, sys
 import logging
 
-import sheep._impl.setup as _impl
+import sheep._impl.env as _impl
 
 from .util import load_app_config, get_venvdir
 
