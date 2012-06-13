@@ -6,7 +6,7 @@ import time
 import signal
 import threading
 
-from sheep.setup import activate_app
+from sheep.env import activate_app
 
 debug = True
 loglevel = 'debug'

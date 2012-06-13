@@ -3,7 +3,7 @@
 
 import os, sys
 
-from sheep.setup import init_app
+from sheep.env import init_app
 from sheep.util import load_app_config, find_app_root
 from sheep.gworkers.mix import MixedGunicornApplication
 

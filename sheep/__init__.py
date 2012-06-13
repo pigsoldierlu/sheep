@@ -1,3 +1,3 @@
-from sheep.setup import init
+import sheep.env
 
-init()
+sheep.env.init()

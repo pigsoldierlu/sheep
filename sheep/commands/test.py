@@ -6,7 +6,7 @@ import yaml
 from pkg_resources import load_entry_point
 from sheep.util import find_app_root, load_dev_config
 from sheep.commands.syncdb import sync_database
-from sheep.setup import activate_app
+from sheep.env import activate_app
 
 TEST_YAML = 'test.yaml'
 

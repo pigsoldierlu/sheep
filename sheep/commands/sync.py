@@ -69,7 +69,7 @@ if sdk_path and not ignore_sdk_path:
     site.addsitedir(sdk_site_dir)
 
     approot = os.environ['SHEEP_APPROOT']
-    from sheep.setup import activate_app
+    from sheep.env import activate_app
     activate_app(approot)
 """)
 

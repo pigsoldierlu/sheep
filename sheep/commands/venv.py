@@ -6,7 +6,7 @@ from subprocess import call
 import logging
 
 from sheep.util import find_app_root
-from sheep.setup import activate_app
+from sheep.env import activate_app
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ def populate_argument_parser(parser):
     parser.add_argument('executable', help="executable under venv/bin/")
     parser.add_argument('arg', nargs='*', help="args passed to the executable")
     parser.epilog = """Insert -- before executable args if they have leading
-        dash.  For example: "sheep venv -- python -v"
+        dash.  For example: "sheep.venv -- python -v"
         """
 
 def main(args):
