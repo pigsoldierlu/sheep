@@ -1,13 +1,15 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
-import site
-import sys, os
+import sys
 import logging
+import pkg_resources
 
+from sheep.env import init
 from sheep.libs.colorlog import ColorizingStreamHandler
 
 def main():
+    init()
 
     from argparse import ArgumentParser
     parser = ArgumentParser()
