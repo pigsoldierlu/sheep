@@ -31,6 +31,7 @@ def init_app(approot):
 def activate_app(approot):
     """配置应用代码运行环境"""
 
+    approot = os.path.abspath(approot)
     init_app(approot)
 
     import sheep.monkey
@@ -48,13 +49,13 @@ def activate_virtualenv(approot):
     if not os.path.exists(venvdir):
         raise Exception("No venv dir found.  Have you run sheep sync before?")
 
-    activate_path = os.path.join(venvdir, 'bin/activate_this.py')
-    execfile(activate_path, dict(__file__=activate_path))
-
     # unload pkg_resources, so that the app can import its own version of
     # pkg_resources from virtual environment.
     if 'pkg_resources' in sys.modules:
         del sys.modules['pkg_resources']
+
+    activate_path = os.path.join(venvdir, 'bin/activate_this.py')
+    execfile(activate_path, dict(__file__=activate_path))
 
     os.environ['VIRTUAL_ENV'] = venvdir
     os.environ['_OLD_VIRTUAL_PATH'] = os.environ['PATH']
@@ -64,3 +65,6 @@ def activate_virtualenv(approot):
     sys.prefix = sys.exec_prefix = venvdir
     if 'distutils.sysconfig' in sys.modules:
         del sys.modules['distutils.sysconfig']
+
+    # Recalculate namespace packages' __path__ attribute
+    import pkg_resources
