@@ -82,11 +82,6 @@ def main():
             logger.error("Output of the subprocess follows:\n" +
                          e.output.rstrip())
 
-        try:
-            send_to_pastebin("Failed when running %s:\n%s" % (cmd, e.output))
-        except Exception:
-            pass
-
         return 1
 
 def install_sheep_sdk():
