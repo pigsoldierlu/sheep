@@ -121,6 +121,9 @@ def clear_redundant_pkgs(venvdir):
     yes = Popen(['yes'], stdout=PIPE)
 
     for pkg in pkgs - req_pkgs:
+        if pkg.startswith('distribute'):
+            continue
+
         try:
             uninstall = Popen([pip, 'uninstall', pkg], stdin=yes.stdout)
             uninstall.communicate()
