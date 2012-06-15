@@ -34,7 +34,8 @@ class WebSocketWSGI(object):
         return part
 
     def __call__(self, environ, start_response):
-        if not (environ.get('HTTP_CONNECTION').find('Upgrade') != -1 and
+        if not (environ.get('HTTP_CONNECTION') and \
+                environ.get('HTTP_CONNECTION').find('Upgrade') != -1 and
             environ['HTTP_UPGRADE'].lower() == 'websocket'):
             # need to check a few more things here for true compliance
             start_response('400 Bad Request', [('Connection','close')])
