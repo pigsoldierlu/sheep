@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
+import os
 from subprocess import call
 
 def populate_argument_parser(parser):
@@ -16,7 +17,8 @@ def populate_argument_parser(parser):
                         help="svn url of the project [default: ask]")
 
 def main(args):
-    cmd = ['paster', 'create', '-t', 'sheep']
+    sdk_path = os.environ['SHEEP_SDK_PATH']
+    cmd = [os.path.join(sdk_path, 'venv', 'bin', 'paster'), 'create', '-t', 'sheep']
     if args.dir:
         cmd += ['-o', args.dir]
     cmd += [args.appname]
