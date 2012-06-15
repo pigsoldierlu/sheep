@@ -3,10 +3,10 @@
 
 import os
 from subprocess import call, Popen, PIPE
-from glob import glob
 
 from sheep.util import find_app_root, get_venvdir, dump_requirements, \
         is_pip_compatible
+from sheep.env import init_app
 
 def populate_argument_parser(parser):
     parser.add_argument('-h', '--help', action='store_true',
@@ -17,9 +17,9 @@ def populate_argument_parser(parser):
 
 def main(args, argv):
     approot = find_app_root()
+    init_app(approot)
     venvdir = get_venvdir(approot)
     pip_path = os.path.join(venvdir, 'bin', 'pip')
-    os.environ['SHEEP_IGN_SDKPATH'] = 'true'
 
     if args.help:
         print "Usage: sheep install ..."

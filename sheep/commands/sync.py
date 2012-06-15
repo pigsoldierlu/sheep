@@ -70,7 +70,7 @@ if sdk_path and not ignore_sdk_path:
 
     approot = os.environ['SHEEP_APPROOT']
     from sheep.env import activate_app
-    activate_app(approot)
+    activate_app(approot, chdir=False)
 """)
 
     os.environ['SHEEP_APPROOT'] = approot

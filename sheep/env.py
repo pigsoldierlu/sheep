@@ -28,7 +28,7 @@ def init_app(approot):
     os.environ['SHEEP_APPNAME'] = appcfg['application']
     os.environ['SHEEP_WORKER'] = appcfg.get('worker', 'async')
 
-def activate_app(approot):
+def activate_app(approot, chdir=True):
     """配置应用代码运行环境"""
 
     approot = os.path.abspath(approot)
@@ -43,6 +43,8 @@ def activate_app(approot):
 
     _impl.activate_app()
 
+    if chdir:
+        os.chdir(approot)
 
 def activate_virtualenv(approot):
     venvdir = os.path.abspath(get_venvdir(approot))
