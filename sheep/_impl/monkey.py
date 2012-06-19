@@ -7,3 +7,6 @@ def get_app_mysql_config():
 
 def patch_impl():
     pass
+
+def patch_log():
+    pass
