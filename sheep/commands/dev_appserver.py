@@ -40,6 +40,9 @@ def run_server(approot, port=8080, pidfile=None, daemon=False):
         worker = 'sheep.gworkers.ggevent.GeventWorker'
     sys.argv += ['-k', worker]
 
+    nworkers = appconf.get('nworkers', '1')
+    sys.argv += ['-w', str(nworkers)]
+
     sys.argv.append(approot)  # must be the only positional parameter
 
     def add_handler(app):

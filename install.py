@@ -8,6 +8,7 @@ from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from optparse import OptionParser
 from contextlib import contextmanager
 import logging
+import commands
 
 from sheep.libs.colorlog import ColorizingStreamHandler
 
@@ -81,6 +82,15 @@ def main():
         if e.output:
             logger.error("Output of the subprocess follows:\n" +
                          e.output.rstrip())
+
+        if "Text file busy" in e.output:
+            logger.error("lsof venv/bin/python\n" + commands.getoutput('lsof venv/bin/python'))
+            logger.error('Please close all running sheep commands(sheep serve, log, _supervisor etc.) and try again')
+
+        try:
+            send_to_pastebin("Failed when running %s:\n%s" % (cmd, e.output))
+        except Exception:
+            pass
 
         return 1
 

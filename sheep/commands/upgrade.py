@@ -36,7 +36,9 @@ def upgrade_sdk(path):
                                   if x != venv_bin)
     with chdir(path):
         check_call(['git', 'pull', REPO_URL, RELEASE_BRANCH])
-        return call(['python', 'install.py'])
+
+    args = ['python', os.path.join(path, 'install.py')]
+    os.execvp('python', args)
 
 def check_version():
     logger.debug("Getting local revision")
