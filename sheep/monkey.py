@@ -26,6 +26,7 @@ def patch_MySQLdb(approot):
     mysql_cfg = _impl.get_app_mysql_config()
 
     def connect(host='sheep', **kwargs):
+        print host, kwargs
         kwargs.setdefault('use_unicode', False)
         kwargs.setdefault('charset', 'utf8')
         if host == 'sheep':
