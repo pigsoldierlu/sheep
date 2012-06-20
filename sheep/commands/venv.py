@@ -28,4 +28,10 @@ def main(args):
     if args.executable == 'pip':
         os.environ['SHEEP_IGN_SDKPATH'] = 'true'
     activate_app(approot)
-    return call([executable] + args.arg)
+
+    rc = -1
+    try:
+        rc = call([executable] + args.arg)
+    except KeyboardInterrupt:
+        os.system('reset')
+    return rc
