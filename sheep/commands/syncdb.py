@@ -47,6 +47,8 @@ def sync_database(root_path, dump_mysql, server=DEFAULT_SERVER,
 
     logger.info("Dumping database to %s...", dump_mysql)
     with open(dump_mysql, 'w') as dumpfile:
+        devcfg['mysql'].setdefault('use_unicode', False)
+        devcfg['mysql'].setdefault('charset', 'utf8')
         conn = MySQLdb.connect(**devcfg['mysql'])
         try:
             struct, data = dumps(dumpfile, conn, sync_data)
