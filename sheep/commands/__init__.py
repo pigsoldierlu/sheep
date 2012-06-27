@@ -31,6 +31,7 @@ def main():
         ('shell', 'shell', "Open shell for debug online"),
         ('upgrade', 'upgrade', "Upgrade SDK version"),
         ('freeze', 'freeze', "Dump requirements in pip-req.txt"),
+        ('plugin', 'plugin', "Plugin install"),
     ]
 
     if len(sys.argv) > 1:
