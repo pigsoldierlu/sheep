@@ -12,7 +12,8 @@ def populate_argument_parser(parser):
     parser.add_argument('setup_file', const=str, nargs='?', default='setup.py',
                         help="setup_file name, default is setup.py, "
                         "when action is install or develop, it will be used.")
-    parser.add_argument('action', help="Actions, allow install/develop/list")
+    parser.add_argument('action', choices=['list', 'install', 'develop'], \
+                        default='list', help="list plugins or install plugins")
 
 def main(args):
     if args.action not in ['list', 'install', 'develop']:
