@@ -9,8 +9,10 @@ from subprocess import call
 logger = logging.getLogger(__name__)
 
 def populate_argument_parser(parser):
-    parser.add_argument('setup_file', const=str, nargs='?', default='setup.py')
-    parser.add_argument('action')
+    parser.add_argument('setup_file', const=str, nargs='?', default='setup.py',
+                        help="setup_file name, default is setup.py, "
+                        "when action is install or develop, it will be used.")
+    parser.add_argument('action', help="Actions, allow install/develop/list")
 
 def main(args):
     if args.action not in ['list', 'install', 'develop']:
