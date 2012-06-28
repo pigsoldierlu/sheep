@@ -7,7 +7,7 @@ static_files url replace
 __all__ = ['static_files', 'public_files', 'upload_files']
 
 import os
-from sheep.util import load_app_config
+from sheep.util import load_app_config, find_app_root
 
 approot = os.environ.get('SHEEP_APPROOT') or find_app_root(raises=False) or ''
 appconf = load_app_config(approot)
