@@ -7,12 +7,11 @@ from werkzeug.contrib.sessions import *
 from werkzeug.wsgi import ClosingIterator
 from werkzeug.utils import dump_cookie, parse_cookie
 
+from _impl.sessions import init
+
 class SessionMiddleware(sessions.SessionMiddleware):
     def __init__(self, app, store, **kwargs):
-        kw = kwargs.copy()
-        kw.update(cookie_name='xid', \
-                  environ_key='xiaomen.session')
-        sessions.SessionMiddleware.__init__(self, app, store, **kw)
+        init(self, app, store, **kwargs)
 
     def __call__(self, environ, start_response):
         cookie = parse_cookie(environ.get('HTTP_COOKIE', ''))

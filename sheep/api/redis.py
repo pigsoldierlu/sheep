@@ -1,8 +1,5 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
-from __future__ import absolute_import
-from redis import ConnectionPool, Redis
+from _impl.redis import client
 
-def client(*args, **kwargs):
-    return Redis(*args, **kwargs)

@@ -5,7 +5,7 @@ import re
 import inspect
 import logging
 from functools import wraps
-from werkzeug.contrib import cache as _cache
+from _impl.cache import backend
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +13,6 @@ old_pattern = re.compile(r'%\w')
 new_pattern = re.compile(r'\{(\w+(\.\w+|\[\w+\])?)\}')
 
 __formaters = {}
-
-backend = _cache.FileSystemCache('/tmp/sheep')
 
 def gen_key(key_pattern, arg_names, defaults, *a, **kw):
     return gen_key_factory(key_pattern, arg_names, defaults)(*a, **kw)
