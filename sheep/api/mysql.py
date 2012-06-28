@@ -18,3 +18,6 @@ def connect(*a, **kw):
         pool = QueuePool(conn, max_overflow=MAX_OVERFLOW, pool_size=POOL_SIZE, timeout=TIMEOUT)
         pools[key] = pool
     return pool.connect()
+
+def get_mysql_conn_params():
+    pass
