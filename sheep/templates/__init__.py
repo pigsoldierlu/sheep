@@ -11,7 +11,6 @@ from mako.template import Template as MakoTemplate
 
 import sheep.commands.sync
 from ..util import validate_appname
-from ..consts import DEFAULT_VENV_DIR
 
 def render_mako(content, vars, filename=None):
     return MakoTemplate(text=content, filename=filename).render(**vars)
