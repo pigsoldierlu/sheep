@@ -25,8 +25,10 @@ def main(args):
     try:
         while True:
             lines = ws.recv()
-            if not lines:
+            if lines == '':
                 continue
+            elif lines is None:
+                break
             for line in lines.split('\n'):
                 line += '\n'
                 if line.startswith('==>'):
