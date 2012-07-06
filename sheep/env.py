@@ -39,7 +39,7 @@ def activate_app(approot, chdir=True):
 
     os.chdir(approot)
     activate_virtualenv(approot)
-    sys.path.insert(0, os.path.abspath(approot))
+    sys.path.insert(0, approot)
 
     _impl.activate_app()
 
