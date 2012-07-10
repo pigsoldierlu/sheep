@@ -14,6 +14,33 @@ from subprocess import Popen, PIPE, STDOUT, CalledProcessError, call
 
 import yaml
 
+def memorize(function):
+    """Decorator: Cache the result of a function
+
+    You get an additional parameter: cached.
+
+    By default, caching is disabled. Explicitly pass cached=True to enable caching.
+
+    """
+    memo = {}
+    def wrapper(*args, **kw):
+        cached = False
+        if 'cached' in kw:
+            if kw['cached']:
+                cached = True
+            del kw['cached']
+        if cached:
+            if args in memo:
+                rv = memo[args]
+            else:
+                rv = function(*args, **kw)
+                memo[args] = rv
+        else:
+            rv = function(*args, **kw)
+        return rv
+    return wrapper
+
+@memorize
 def load_app_config(root_path, replace_macros=True):
     appconf_path = os.path.join(root_path, 'app.yaml')
     appconf = load_config(appconf_path, replace_macros=replace_macros)

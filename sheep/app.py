@@ -17,6 +17,7 @@ from gunicorn import util
 
 from .libs.websocket import WebSocketWSGI
 from .util import load_app_config, set_environ
+from sheep.api.onimaru import report
 
 logger = logging.getLogger()
 
@@ -106,8 +107,10 @@ class WSGIApplication(object):
                         return self.profile_call(handler, environ, start_response)
                     return handler(environ, start_response)
         except Exception:
+            exc_type, exc_value, tb = sys.exc_info()
             logger.exception("error occurred when handle request")
-            raise
+            report()
+            raise exc_type, exc_value, tb
 
         start_response('404 Not Found', [])
         return ["404 Not Found"]
