@@ -5,16 +5,21 @@
 
 from __future__ import with_statement
 
-from datetime import datetime
+import sys
 import errno
 import socket
+import logging
+from datetime import datetime
 
 import gunicorn.http as http
 import gunicorn.http.wsgi as wsgi
 import gunicorn.util as util
 import gunicorn.workers.base as base
 
+from sheep.api.sentry import report
+
 ALREADY_HANDLED = object()
+logger = logging.getLogger()
 
 class AsyncWorker(base.Worker):
     request_generator = http.RequestParser
@@ -63,10 +68,10 @@ class AsyncWorker(base.Worker):
                 self.log.info("Autorestarting worker after current request.")
                 resp.force_close()
                 self.alive = False
-            respiter = self.wsgi(environ, resp.start_response)
-            if respiter == ALREADY_HANDLED:
-                return False
             try:
+                respiter = self.wsgi(environ, resp.start_response)
+                if respiter == ALREADY_HANDLED:
+                    return False
                 for item in respiter:
                     resp.write(item)
                 resp.close()

@@ -17,7 +17,6 @@ from gunicorn import util
 
 from .libs.websocket import WebSocketWSGI
 from .util import load_app_config, set_environ
-from sheep.api.sentry import report
 
 logger = logging.getLogger()
 
