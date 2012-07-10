@@ -74,6 +74,11 @@ class AsyncWorker(base.Worker):
                 ms = request_time.seconds * 1000 + (request_time.microseconds / 1000)
                 environ['HTTP_X_SHEEP_REQUEST_TIME_IN_MS'] = str(ms)
                 self.log.access(resp, environ, request_time)
+            except Exception:
+                exc_type, exc_value, tb = sys.exc_info()
+                logger.exception("error occurred when handle request")
+                report()
+                raise exc_type, exc_value, tb
             finally:
                 if hasattr(respiter, "close"):
                   respiter.close()

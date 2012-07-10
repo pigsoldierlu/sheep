@@ -90,35 +90,29 @@ class WSGIApplication(object):
         output_io.close()
 
     def __call__(self, environ, start_response):
-        try:
-            set_environ(environ)
-            path_info = environ['PATH_INFO'] or '/'
-            environ['sheep.config'] = self.appconf
-            if self.handlers is None:
-                self.handlers = []
-                for h in self.appconf['handlers']:
-                    try:
-                        app_handler = handler_factory(h)
-                        self.handlers.append(app_handler)
-                    except Exception:
-                        logger.exception("load handler failed")
-                        app_handler = LoadErrorHandler(h)
-                        app_handler.set_traceback(sys.exc_info())
-                        self.handlers.append(app_handler)
+        set_environ(environ)
+        path_info = environ['PATH_INFO'] or '/'
+        environ['sheep.config'] = self.appconf
+        if self.handlers is None:
+            self.handlers = []
+            for h in self.appconf['handlers']:
+                try:
+                    app_handler = handler_factory(h)
+                    self.handlers.append(app_handler)
+                except Exception:
+                    logger.exception("load handler failed")
+                    app_handler = LoadErrorHandler(h)
+                    app_handler.set_traceback(sys.exc_info())
+                    self.handlers.append(app_handler)
 
-            for handler in self.handlers:
-                m = handler.match(path_info)
-                if m:
-                    environ['sheep.matched'] = m
-                    if environ['QUERY_STRING'] and \
-                            '_sheep_profile=1' in environ['QUERY_STRING']:
-                        return self.profile_call(handler, environ, start_response)
-                    return handler(environ, start_response)
-        except Exception:
-            exc_type, exc_value, tb = sys.exc_info()
-            logger.exception("error occurred when handle request")
-            report()
-            raise exc_type, exc_value, tb
+        for handler in self.handlers:
+            m = handler.match(path_info)
+            if m:
+                environ['sheep.matched'] = m
+                if environ['QUERY_STRING'] and \
+                        '_sheep_profile=1' in environ['QUERY_STRING']:
+                    return self.profile_call(handler, environ, start_response)
+                return handler(environ, start_response)
 
         start_response('404 Not Found', [])
         return ["404 Not Found"]
