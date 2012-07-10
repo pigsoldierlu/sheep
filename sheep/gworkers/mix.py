@@ -28,5 +28,5 @@ class MixedApplication(object):
         self.wsgiapp = WSGIApplication(appcfg)
 
     def __call__(self, environ, start_response):
-            return self.wsgiapp(environ, start_response)
+        return self.wsgiapp(environ, start_response)
 
