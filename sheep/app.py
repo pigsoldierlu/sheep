@@ -48,7 +48,15 @@ class SHEEPApplication(Application):
             self.on_init(self)
 
     def load(self):
-        return WSGIApplication(self.appconf)
+        return MixedApplication(self.appconf)
+
+class MixedApplication(object):
+    def __init__(self, appcfg):
+        self.appcfg = appcfg
+        self.wsgiapp = WSGIApplication(appcfg)
+
+    def __call__(self, environ, start_response):
+        return self.wsgiapp(environ, start_response)
 
 class WSGIApplication(object):
     def __init__(self, appconf):

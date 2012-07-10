@@ -5,7 +5,7 @@ import os, sys
 
 from sheep.env import init_app
 from sheep.util import load_app_config, find_app_root
-from sheep.gworkers.mix import MixedGunicornApplication
+from sheep.app import SHEEPApplication
 
 def populate_argument_parser(parser):
     parser.add_argument('approot', metavar="<app root>", nargs='?',
@@ -49,6 +49,6 @@ def run_server(approot, port=8080, pidfile=None, daemon=False):
         dev_handler = {'url': '/_sheep/.*', 'wsgi_app': 'sheep.dev:dispatcher'}
         app.appconf['handlers'].insert(0, dev_handler)
 
-    app = MixedGunicornApplication(on_init=add_handler)
+    app = SHEEPApplication(on_init=add_handler)
     return app.run()
 
