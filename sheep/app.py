@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import time
+import types
 import pstats
 import logging
 import cProfile
@@ -17,6 +18,8 @@ from gunicorn import util
 
 from .libs.websocket import WebSocketWSGI
 from .util import load_app_config, set_environ
+
+from sheep.api.sentry import report
 
 logger = logging.getLogger()
 
@@ -49,13 +52,32 @@ class SHEEPApplication(Application):
     def load(self):
         return MixedApplication(self.appconf)
 
+class MixedResult(object):
+    def __init__(self, value):
+        self._value = value
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        try:
+            return self._value.next()
+        except Exception:
+            exc_type, exc_value, tb = sys.exc_info()
+            logger.exception("error occurred when handle request")
+            report()
+            raise exc_type, exc_value, tb
+
 class MixedApplication(object):
     def __init__(self, appcfg):
         self.appcfg = appcfg
         self.wsgiapp = WSGIApplication(appcfg)
 
     def __call__(self, environ, start_response):
-        return self.wsgiapp(environ, start_response)
+        result = self.wsgiapp(environ, start_response)
+        if isinstance(result, types.GeneratorType):
+            return MixedResult(result)
+        return result
 
 class WSGIApplication(object):
     def __init__(self, appconf):

@@ -5,10 +5,8 @@
 
 from __future__ import with_statement
 
-import sys
 import errno
 import socket
-import logging
 from datetime import datetime
 
 import gunicorn.http as http
@@ -16,10 +14,7 @@ import gunicorn.http.wsgi as wsgi
 import gunicorn.util as util
 import gunicorn.workers.base as base
 
-from sheep.api.sentry import report
-
 ALREADY_HANDLED = object()
-logger = logging.getLogger()
 
 class AsyncWorker(base.Worker):
     request_generator = http.RequestParser
@@ -80,11 +75,6 @@ class AsyncWorker(base.Worker):
                 ms = request_time.seconds * 1000 + (request_time.microseconds / 1000)
                 environ['HTTP_X_SHEEP_REQUEST_TIME_IN_MS'] = str(ms)
                 self.log.access(resp, environ, request_time)
-            except Exception:
-                exc_type, exc_value, tb = sys.exc_info()
-                logger.exception("error occurred when handle request")
-                report()
-                raise exc_type, exc_value, tb
             finally:
                 if hasattr(respiter, "close"):
                     respiter.close()
