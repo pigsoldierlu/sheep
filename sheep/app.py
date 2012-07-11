@@ -52,6 +52,15 @@ class SHEEPApplication(Application):
     def load(self):
         return MixedApplication(self.appconf)
 
+def check_result(handle):
+    try:
+        return handle()
+    except Exception:
+        exc_type, exc_value, tb = sys.exc_info()
+        logger.exception("error occurred when handle request")
+        report()
+        raise exc_type, exc_value, tb
+
 class MixedResult(object):
     def __init__(self, value):
         self._value = value
@@ -60,13 +69,7 @@ class MixedResult(object):
         return self
 
     def next(self):
-        try:
-            return self._value.next()
-        except Exception:
-            exc_type, exc_value, tb = sys.exc_info()
-            logger.exception("error occurred when handle request")
-            report()
-            raise exc_type, exc_value, tb
+        return check_result(lambda: self._value.next())
 
 class MixedApplication(object):
     def __init__(self, appcfg):
@@ -74,7 +77,7 @@ class MixedApplication(object):
         self.wsgiapp = WSGIApplication(appcfg)
 
     def __call__(self, environ, start_response):
-        result = self.wsgiapp(environ, start_response)
+        result = check_result(lambda: self.wsgiapp(environ, start_response))
         if isinstance(result, types.GeneratorType):
             return MixedResult(result)
         return result
